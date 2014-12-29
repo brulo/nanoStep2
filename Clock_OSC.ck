@@ -2,13 +2,11 @@
 // A clock that pulse local OSC (and network OSC if desired)
 // by Bruce Lott & Ness Morris, August 2013 
 public class Clock{
-    int stepDiv, playing, metroOn, networking;
+    int stepDiv, playing, networking;
     float BPM, cStep, nSteps, swingAmt;
     dur stepLen, SPB, swing; 
     time lastStep;
     Shred loopS;
-    SinOsc metro;
-    ADSR metroEnv;
     OscSend locXmit;    // sends clock info locally
     OscSend netXmit[0]; // for sending clock over network	
     OscRecv orec;
@@ -20,18 +18,11 @@ public class Clock{
     fun void init(float nTempo){
         locXmit.setHost("localhost", 98765);
         1 => stepDiv;
-        0 => metroOn;
         Math.FLOAT_MAX => nSteps;
         tempo(nTempo);
         stepDivider(4); // sets steps to 16th notes
         play(1);
         spork ~ loop() @=> loopS;
-        // metronome
-        if(metroOn){
-            metro.freq(Std.mtof(60));
-            metroEnv.set(1::ms, 10::ms, 0, 0::ms);
-            metro => metroEnv => dac;
-        }
     }
 
     fun void initOscRecv(){
@@ -42,7 +33,6 @@ public class Clock{
         spork ~ incTempoOSC();
         spork ~ swingAmountOSC();
         spork ~ stepDividerOSC();
-        spork ~ metronomeOSC();
         spork ~ killOSC();
     }
 
@@ -83,10 +73,6 @@ public class Clock{
                 netXmit[i].addFloat(cStep);
             }
         }
-        if(metroOn){ 
-            metroEnv.keyOff();
-            metroEnv.keyOn();
-        } 
     }
 
     //----- controls -----
@@ -134,13 +120,6 @@ public class Clock{
             swingAmount(swingAmt);
         }
         return stepDiv;
-    }
-
-    fun int metronome(){ return metroOn; }
-    fun int metronome(int m){
-        if(!m) 0 => metroOn;
-        else 1 => metroOn;
-        return metroOn;
     }
 
     fun dur stepLength(){ return stepLen; }
@@ -192,15 +171,6 @@ public class Clock{
             }
         }
     }
-
-    fun void metronomeOSC(){
-    	orec.event("/metro, i") @=> OscEvent metroEv;
-        while(metroEv => now){
-            while(metroEv.nextMsg() != 0){	
-                metronome(metroEv.getInt());
-            }
-        }
-    }  
 
     fun void killOSC(){
     	orec.event("/kill") @=> OscEvent killEv;
