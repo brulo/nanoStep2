@@ -6,10 +6,14 @@ public class MultiOscillator extends Chubgraph {
   SinOsc _sin @=> _waveforms["sin"];
   ["saw", "sqr", "tri", "sin"] @=> string _waveformNames[];
   string _currentWaveform;
-
   // MIDI note, tuning modifiers, and the resultant freq.
   float _note, _coarseTune, _fineTune, _freq;
 
+  // GUI
+  MAUI_Slider coarseTuneSlider, fineTuneSlider;
+  [coarseTuneSlider, fineTuneSlider] @=> MAUI_Slider sliders[];
+
+  
   /* PUBLIC */  
   fun void init() {
     waveform("saw");
@@ -17,24 +21,38 @@ public class MultiOscillator extends Chubgraph {
     gain(0.25);
   }
 
+  fun void initGUI(MAUI_View view, int xOffset, int yOffset) {
+    for(0 => int i; i < sliders.cap(); i++) {
+      sliders[i].range(0.0, 1.0);
+      sliders[i].value(0.5);
+      view.addElement(sliders[i]);
+    } 
+    coarseTuneSlider.name("Coarse Tune");
+    fineTuneSlider.name("Fine Tune");
+    coarseTuneSlider.position(xOffset, yOffset);
+    fineTuneSlider.position(xOffset, yOffset + 100);
+
+    spork ~ _guiLoop();
+  }
+
   fun float note() { return _note; }
-  fun float note(float val) { 
-    Utility.clamp(val, 0, 127) => _note;
+  fun float note(float input) { 
+    Utility.clamp(input, 0, 127) => _note;
     _updateFreq();
     return _note;
   }
 
   fun float coarseTune() { return _coarseTune; }
-  fun float coarseTune(float val) { 
+  fun float coarseTune(float input) { 
     // 2 major 5ths 
-    Utility.clamp(val, 0, 1) * 14 - 7 => _coarseTune;
+    Utility.clamp(input, 0, 1) * 14 - 7 => _coarseTune;
     _updateFreq();
     return _coarseTune;
   } 
 
   fun float fineTune() { return _fineTune; }
-  fun float fineTune(float val) {
-    Utility.clamp(val, 0, 1) * 2 - 1 => _fineTune;
+  fun float fineTune(float input) {
+    Utility.clamp(input, 0, 1) * 2 - 1 => _fineTune;
     _updateFreq();
     return _fineTune;
   }
@@ -52,7 +70,6 @@ public class MultiOscillator extends Chubgraph {
     else return "Not a valid waveform";
   }
 
-
   /* PRIVATE */
   fun void _updateFreq() {
     _note + _coarseTune + _fineTune => _freq;
@@ -67,4 +84,11 @@ public class MultiOscillator extends Chubgraph {
     return 0;
   }
 
+  // poll slider values to set parameters
+  fun void _guiLoop() {
+    while(1::samp => now) { 
+      fineTune(fineTuneSlider.value());
+      coarseTune(coarseTuneSlider.value());
+    }
+  }
 }

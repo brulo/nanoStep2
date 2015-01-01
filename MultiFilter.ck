@@ -8,11 +8,31 @@ public class MultiFilter extends Chubgraph {
   string _currentFilter;
   float _freq, _Q;
 
+  // GUI
+  MAUI_Slider freqSlider, QSlider;
+  [freqSlider, QSlider] @=> MAUI_Slider sliders[];
+
+
   /* PUBLIC */
   fun void init() {
     filter("lp");
     freq(1.0);
     Q(0);
+  }
+
+  fun void initGUI(MAUI_View view, int xOffset, int yOffset) {
+    for(0 => int i; i < sliders.cap(); i++) {
+      sliders[i].range(0.0, 1.0);
+      view.addElement(sliders[i]);
+    } 
+    freqSlider.name("Cutoff Frequency");
+    freqSlider.value(1.0);
+    QSlider.name("Q");
+    QSlider.value(0.0);
+    freqSlider.position(xOffset, yOffset);
+    QSlider.position(xOffset, yOffset + 100);
+
+    spork ~ _guiLoop();
   }
 
   fun string filter() { return _currentFilter; }
@@ -34,7 +54,7 @@ public class MultiFilter extends Chubgraph {
 
   fun float freq() { return _freq; }
   fun float freq(float val) {
-    Utility.clamp(val, 0, 1)*15980 + 20 => _freq;  
+    Utility.clamp(val, 0, 1)*15980 + 30 => _freq;  
     _updateFreq();
     return _freq;
   }
@@ -63,4 +83,11 @@ public class MultiFilter extends Chubgraph {
     return 0;
   }
 
+  // poll slider values to set parameters
+  fun void _guiLoop() {
+    while(1::samp => now) { 
+      freq(freqSlider.value());
+      Q(QSlider.value());
+    }
+  }
 }
