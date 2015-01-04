@@ -33,7 +33,7 @@ public class LFO extends Chubgraph {
       view.addElement(buttons[i]);
     }
     sinButton.state(1);
-    freqSlider.name("Cutoff Freq");
+    freqSlider.name("Freq");
     gainSlider.name("Gain");
     freqSlider.position(xOffset, yOffset + 75);
     gainSlider.position(xOffset, yOffset + 125);
