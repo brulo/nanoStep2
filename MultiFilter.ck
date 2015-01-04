@@ -15,7 +15,7 @@ public class MultiFilter extends Chubgraph {
 
 
   /* PUBLIC */
-  fun void addFreqModulator(UGen mod) {
+  fun void addFreqMod(UGen mod) {
     _freqMods << mod;    
   }
 
