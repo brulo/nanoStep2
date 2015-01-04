@@ -7,6 +7,7 @@ public class MultiFilter extends Chubgraph {
   ["lp", "bp", "hp", "rez"] @=> string _filterNames[];
   string _currentFilter;
   float _freq, _Q;
+  UGen _freqMods[0];
 
   // GUI
   MAUI_Slider freqSlider, QSlider;
@@ -14,10 +15,15 @@ public class MultiFilter extends Chubgraph {
 
 
   /* PUBLIC */
+  fun void addFreqModulator(UGen mod) {
+    _freqMods << mod;    
+  }
+
   fun void init() {
     filter("lp");
     freq(1.0);
     Q(0);
+    spork ~ _paramLoop();
   }
 
   fun void initGUI(MAUI_View view, int xOffset, int yOffset) {
@@ -30,7 +36,7 @@ public class MultiFilter extends Chubgraph {
     QSlider.name("Q");
     QSlider.value(0.0);
     freqSlider.position(xOffset, yOffset);
-    QSlider.position(xOffset, yOffset + 100);
+    QSlider.position(xOffset, yOffset + 50);
 
     spork ~ _guiLoop();
   }
@@ -45,8 +51,6 @@ public class MultiFilter extends Chubgraph {
       name => _currentFilter;
       inlet => _filters[_currentFilter];
       _filters[_currentFilter] => outlet; 
-      _updateQ();
-      _updateFreq();
       return _currentFilter;
     }
     else return "Not a valid waveform";
@@ -54,27 +58,17 @@ public class MultiFilter extends Chubgraph {
 
   fun float freq() { return _freq; }
   fun float freq(float val) {
-    Utility.clamp(val, 0, 1)*15980 + 30 => _freq;  
-    _updateFreq();
+    Utility.clamp(val, 0, 1) => _freq;  
     return _freq;
   }
 
   fun float Q() { return _Q; }
   fun float Q(float val) {
-    Utility.clamp(val, 0, 1)*11 + 1 => _Q; 
-    _updateQ();
+    Utility.clamp(val, 0, 1) => _Q; 
     return _Q;
   }
 
   /* PRIVATE */
-  fun void _updateFreq() {
-    _filters[_currentFilter].freq(_freq);
-  }
-
-  fun void _updateQ() {
-    _filters[_currentFilter].Q(_Q);
-  }
-  
   fun int _isFilterName(string name) {
     for(0 => int i; i < _filterNames.cap(); i++) {
       if(name == _filterNames[i])
@@ -85,9 +79,19 @@ public class MultiFilter extends Chubgraph {
 
   // poll slider values to set parameters
   fun void _guiLoop() {
-    while(1::samp => now) { 
+    while(samp => now) { 
       freq(freqSlider.value());
       Q(QSlider.value());
     }
   }
+  
+  fun void _paramLoop() { 
+    while(samp => now) { 
+      _filters[_currentFilter].Q(_Q * 11 + 1);
+      0 => float freqModSum;
+      for(0 => int i; i < _freqMods.cap(); i++)
+        _freqMods[i].last()*0.5 + 0.5 +=> freqModSum;  
+      _filters[_currentFilter].freq(Utility.clamp(_freq + freqModSum, 0, 1) * 15980 + 30);
+    }
+  } 
 }
