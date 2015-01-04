@@ -12,8 +12,10 @@ public class MultiOscillator extends Chubgraph {
   // GUI
   MAUI_Slider coarseTuneSlider, fineTuneSlider;
   [coarseTuneSlider, fineTuneSlider] @=> MAUI_Slider sliders[];
+  MAUI_Button sawButton, sqrButton, triButton, sinButton;
+  [sawButton, sqrButton, triButton, sinButton] @=> MAUI_Button buttons[];
 
-  
+
   /* PUBLIC */  
   fun void init() {
     waveform("saw");
@@ -27,12 +29,19 @@ public class MultiOscillator extends Chubgraph {
       sliders[i].value(0.5);
       view.addElement(sliders[i]);
     } 
+    for(0 => int i; i < buttons.cap(); i++) {
+      buttons[i].toggleType();
+      buttons[i].state(0);
+      buttons[i].position(xOffset + i*50, yOffset);
+      view.addElement(buttons[i]);
+    }
+    sawButton.state(1);
     coarseTuneSlider.name("Coarse Tune");
     fineTuneSlider.name("Fine Tune");
-    coarseTuneSlider.position(xOffset, yOffset);
-    fineTuneSlider.position(xOffset, yOffset + 100);
+    coarseTuneSlider.position(xOffset, yOffset + 75);
+    fineTuneSlider.position(xOffset, yOffset + 125);
 
-    spork ~ _guiLoop();
+    _sporkGUIShreds();
   }
 
   fun float note() { return _note; }
@@ -84,11 +93,37 @@ public class MultiOscillator extends Chubgraph {
     return 0;
   }
 
-  // poll slider values to set parameters
-  fun void _guiLoop() {
-    while(1::samp => now) { 
-      fineTune(fineTuneSlider.value());
+  fun void _waveformButtonLoop(MAUI_Button button, string waveName) {
+    button.name(waveName);
+    while(button => now)
+      if(button.state() == 1) {
+        _toggleButtonsOff();
+        button.state(1);
+        waveform(waveName);
+      }
+  }
+
+  fun void _toggleButtonsOff() {
+    for(0 => int i; i < buttons.cap(); i++)
+      buttons[i].state(0);   
+  }
+
+  fun void _fineTuneSliderLoop() {
+    while(fineTuneSlider => now)
+      fineTune(fineTuneSlider.value()); 
+  }
+
+  fun void _coarseTuneSliderLoop() {
+    while(coarseTuneSlider => now)
       coarseTune(coarseTuneSlider.value());
-    }
+  }
+
+  fun void _sporkGUIShreds() {
+    spork ~ _coarseTuneSliderLoop();
+    spork ~ _fineTuneSliderLoop();
+    spork ~ _waveformButtonLoop(sawButton, "saw");
+    spork ~ _waveformButtonLoop(sqrButton, "sqr");
+    spork ~ _waveformButtonLoop(sinButton, "sin");
+    spork ~ _waveformButtonLoop(triButton, "tri");
   }
 }
