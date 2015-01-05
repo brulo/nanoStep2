@@ -5,6 +5,7 @@ public class ADSRPlus extends Chubgraph {
   // GUI
   MAUI_Slider attackSlider, decaySlider, sustainSlider, releaseSlider;
   [attackSlider, decaySlider, sustainSlider, releaseSlider] @=> MAUI_Slider sliders[];
+  MAUI_LED keyLED;
   TitleBar titleBar;
 
   fun void init() {
@@ -29,6 +30,9 @@ public class ADSRPlus extends Chubgraph {
       view.addElement(sliders[i]);
     } 
     sustainSlider.value(sustainLevel());
+    keyLED.position(xOffset, yOffset+200);
+    keyLED.color(1);
+    view.addElement(keyLED);
     attackSlider.name("Attack");
     decaySlider.name("Decay");
     sustainSlider.name("Sustain");
@@ -42,8 +46,14 @@ public class ADSRPlus extends Chubgraph {
   }
 
   /* PUBLIC */
-  fun void keyOn() { envelope.keyOn(1); }
-  fun void keyOff() { envelope.keyOff(1); }
+  fun void keyOn() { 
+    envelope.keyOn(1); 
+    keyLED.light();
+  }
+  fun void keyOff() { 
+    envelope.keyOff(1); 
+    keyLED.unlight();
+  }
 
   fun float attackTime() { return _attackTime; }
   fun float attackTime(float val) {
