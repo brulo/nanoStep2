@@ -5,6 +5,7 @@ public class ADSRPlus extends Chubgraph {
   // GUI
   MAUI_Slider attackSlider, decaySlider, sustainSlider, releaseSlider;
   [attackSlider, decaySlider, sustainSlider, releaseSlider] @=> MAUI_Slider sliders[];
+  TitleBar titleBar;
 
   fun void init() {
     attackTime(0.0);
@@ -13,7 +14,14 @@ public class ADSRPlus extends Chubgraph {
     releaseTime(0.0);
   }
   
-  fun void initGUI(MAUI_View view, int xOffset, int yOffset) {
+  fun void initGUI(MAUI_View view, string titleName, int x, int y) {
+    titleBar.init(x, y, 
+                  titleName, 90,
+                  5, 9);                  
+    titleBar.addElementsToView(view);
+    x => int xOffset;
+    60 => int titleBarOffset;
+    y + titleBarOffset => int yOffset;
     for(0 => int i; i < sliders.cap(); i++) {
       sliders[i].range(0.0, 1.0);
       sliders[i].value(0.5);

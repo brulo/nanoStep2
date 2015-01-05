@@ -13,6 +13,7 @@ public class LFO extends Chubgraph {
   [freqSlider, gainSlider] @=> MAUI_Slider sliders[];
   MAUI_Button sawButton, sqrButton, triButton, sinButton;
   [sawButton, sqrButton, triButton, sinButton] @=> MAUI_Button buttons[];
+  TitleBar titleBar;
 
   /* PUBLIC */
   fun void init() {
@@ -20,12 +21,14 @@ public class LFO extends Chubgraph {
     gain(0.5); 
   } 
 
-  fun void initGUI(MAUI_View view, int xOffset, int yOffset) {
-    for(0 => int i; i < sliders.cap(); i++) {
-      sliders[i].range(0.0, 1.0);
-      sliders[i].value(0.5);
-      view.addElement(sliders[i]);
-    } 
+  fun void initGUI(MAUI_View view, string titleName, int x, int y) {
+    titleBar.init(x, y, 
+                  titleName, 90,
+                  5, 9);                  
+    titleBar.addElementsToView(view);
+    x => int xOffset;
+    60 => int titleBarOffset;
+    y + titleBarOffset => int yOffset;
     for(0 => int i; i < buttons.cap(); i++) {
       buttons[i].toggleType();
       buttons[i].state(0);
@@ -40,6 +43,10 @@ public class LFO extends Chubgraph {
 
     _sporkGUIShreds();
   }
+
+  fun void initGUI(MAUI_View view, int xOffset, int yOffset) {
+    initGUI(view, xOffset, yOffset, "LFO", 103);
+}
 
   fun string waveform() { return _currentWaveform; }
   fun string waveform(string wf) {

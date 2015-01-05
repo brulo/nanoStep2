@@ -12,6 +12,7 @@ public class MultiFilter extends Chubgraph {
   // GUI
   MAUI_Slider freqSlider, QSlider;
   [freqSlider, QSlider] @=> MAUI_Slider sliders[];
+  TitleBar titleBar;
 
 
   /* PUBLIC */
@@ -26,7 +27,14 @@ public class MultiFilter extends Chubgraph {
     spork ~ _paramLoop();
   }
 
-  fun void initGUI(MAUI_View view, int xOffset, int yOffset) {
+  fun void initGUI(MAUI_View view, string titleName, int x, int y) {
+    titleBar.init(x, y, 
+                  titleName, 90,
+                  5, 9);                  
+    titleBar.addElementsToView(view);
+    x => int xOffset;
+    60 => int titleBarOffset;
+    y + titleBarOffset => int yOffset;
     for(0 => int i; i < sliders.cap(); i++) {
       sliders[i].range(0.0, 1.0);
       view.addElement(sliders[i]);
@@ -45,7 +53,7 @@ public class MultiFilter extends Chubgraph {
   fun string filter(string name) {
     if(_isFilterName(name)) {
       if(_isFilterName(_currentFilter)) {
-        inlet =<_filters[_currentFilter];
+        inlet =< _filters[_currentFilter];
         _filters[_currentFilter] =< outlet;
       }
       name => _currentFilter;

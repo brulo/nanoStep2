@@ -15,11 +15,11 @@ public class TitleBar {
     }
     // title text.  
     titleText.name(title);
-    titleText.position(xOffset+titleOffset, yOffset+14);
+    titleText.position(xOffset+titleOffset, yOffset+11);
     // bottom bar.
     for(0 => int i; i < numGaugesAcross; i++) {
       MAUI_Gauge gauge; 
-      gauge.position(xOffset+gaugeOffset*i, yOffset+35);
+      gauge.position(xOffset+gaugeOffset*i, yOffset+30);
       bottomGauges << gauge;
     }
   }
