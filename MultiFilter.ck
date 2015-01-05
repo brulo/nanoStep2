@@ -98,7 +98,7 @@ public class MultiFilter extends Chubgraph {
       _filters[_currentFilter].Q(_Q * 11 + 1);
       0 => float freqModSum;
       for(0 => int i; i < _freqMods.cap(); i++)
-        _freqMods[i].last()*0.5 + 0.5 +=> freqModSum;  
+        Math.fabs(_freqMods[i].last()) +=> freqModSum;  
       _filters[_currentFilter].freq(Utility.clamp(_freq + freqModSum, 0, 1) * 15980 + 30);
     }
   } 
