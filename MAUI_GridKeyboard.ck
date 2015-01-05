@@ -1,5 +1,7 @@
 public class MAUI_GridKeyboard {
   MAUI_Button buttons[64];
+  OscOut oscOut;
+  oscOut.dest("localhost", 1234);
   
   fun void init(MAUI_View view) {
     for(0 => int x; x < 8; x++) {
@@ -14,12 +16,15 @@ public class MAUI_GridKeyboard {
     } 
   }
   
-  fun void buttonLoop(MAUI_Button button, int noteValue) {
+  fun void buttonLoop(MAUI_Button button, float noteValue) {
     while(button => now) {
       if(button.state()) { 
-        <<<noteValue, "">>>; 
+        /* <<<noteValue, "">>>; */ 
+        oscOut.start("/gate").add(1).send();
+        oscOut.start("/note").add(noteValue).send();
       }
       else {
+        oscOut.start("/gate").add(0).send(); 
       }
     }
   }
