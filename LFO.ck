@@ -40,6 +40,8 @@ public class LFO extends Chubgraph {
     gainSlider.name("Gain");
     freqSlider.position(xOffset, yOffset + 75);
     gainSlider.position(xOffset, yOffset + 125);
+    view.addElement(freqSlider);
+    view.addElement(gainSlider);
 
     _sporkGUIShreds();
   }
