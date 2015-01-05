@@ -46,13 +46,14 @@ public class MultiOscillator extends Chubgraph {
       buttons[i].toggleType();
       buttons[i].state(0);
       buttons[i].position(xOffset + i*50, yOffset);
+      buttons[i].size(90, 68);
       view.addElement(buttons[i]);
     }
     sawButton.state(1);
     coarseTuneSlider.name("Coarse Tune");
     fineTuneSlider.name("Fine Tune");
-    coarseTuneSlider.position(xOffset, yOffset + 75);
-    fineTuneSlider.position(xOffset, yOffset + 125);
+    coarseTuneSlider.position(xOffset, yOffset + 45);
+    fineTuneSlider.position(xOffset, yOffset + 95);
 
     _sporkGUIShreds();
   }
@@ -137,7 +138,6 @@ public class MultiOscillator extends Chubgraph {
       0 => float freqModSum;
       for(0 => int i; i < _freqMods.cap(); i++)
         _freqMods[i].last() +=> freqModSum;  
-      12 *=> freqModSum;
 
       Utility.clamp(_note+_coarseTune+_fineTune+freqModSum, 0, 127) => _freq;
       _waveforms[_currentWaveform].freq(Std.mtof(_freq));

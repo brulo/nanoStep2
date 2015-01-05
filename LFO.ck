@@ -33,13 +33,14 @@ public class LFO extends Chubgraph {
       buttons[i].toggleType();
       buttons[i].state(0);
       buttons[i].position(xOffset + i*50, yOffset);
+      buttons[i].size(90, 68);
       view.addElement(buttons[i]);
     }
     sinButton.state(1);
     freqSlider.name("Freq");
     gainSlider.name("Gain");
-    freqSlider.position(xOffset, yOffset + 75);
-    gainSlider.position(xOffset, yOffset + 125);
+    freqSlider.position(xOffset, yOffset + 45);
+    gainSlider.position(xOffset, yOffset + 95);
     view.addElement(freqSlider);
     view.addElement(gainSlider);
 
