@@ -44,10 +44,6 @@ public class LFO extends Chubgraph {
     _sporkGUIShreds();
   }
 
-  fun void initGUI(MAUI_View view, int xOffset, int yOffset) {
-    initGUI(view, xOffset, yOffset, "LFO", 103);
-}
-
   fun string waveform() { return _currentWaveform; }
   fun string waveform(string wf) {
     if(_isWaveformName(wf)) {
