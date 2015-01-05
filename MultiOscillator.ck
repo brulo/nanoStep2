@@ -8,6 +8,7 @@ public class MultiOscillator extends Chubgraph {
   string _currentWaveform;
   // MIDI note, tuning modifiers, and the resultant freq.
   float _note, _coarseTune, _fineTune, _freq;
+  UGen _freqMods[0]; 
 
   // GUI
   MAUI_Slider coarseTuneSlider, fineTuneSlider;
@@ -17,10 +18,15 @@ public class MultiOscillator extends Chubgraph {
   TitleBar titleBar;
 
   /* PUBLIC */  
+  fun void addFreqMod(UGen mod) {
+    _freqMods << mod;    
+  }
+
   fun void init() {
     waveform("saw");
     note(36);
     gain(0.25);
+    spork ~ _paramLoop();
   }
 
   fun void initGUI(MAUI_View view, string titleName, int x, int y) {
@@ -54,7 +60,6 @@ public class MultiOscillator extends Chubgraph {
   fun float note() { return _note; }
   fun float note(float input) { 
     Utility.clamp(input, 0, 127) => _note;
-    _updateFreq();
     return _note;
   }
 
@@ -62,14 +67,12 @@ public class MultiOscillator extends Chubgraph {
   fun float coarseTune(float input) { 
     // 2 major 5ths 
     Utility.clamp(input, 0, 1) * 14 - 7 => _coarseTune;
-    _updateFreq();
     return _coarseTune;
   } 
 
   fun float fineTune() { return _fineTune; }
   fun float fineTune(float input) {
     Utility.clamp(input, 0, 1) * 2 - 1 => _fineTune;
-    _updateFreq();
     return _fineTune;
   }
 
@@ -80,17 +83,12 @@ public class MultiOscillator extends Chubgraph {
         _waveforms[_currentWaveform] =< outlet;	
       wf => _currentWaveform;
       _waveforms[_currentWaveform] => outlet; 
-      _updateFreq();
       return _currentWaveform;
     }
     else return "Not a valid waveform";
   }
 
   /* PRIVATE */
-  fun void _updateFreq() {
-    _note + _coarseTune + _fineTune => _freq;
-    _waveforms[_currentWaveform].freq(Std.mtof(_freq));
-  }
 
   fun int _isWaveformName(string wf) {
     for(0 => int i; i < _waveformNames.cap(); i++){
@@ -133,4 +131,16 @@ public class MultiOscillator extends Chubgraph {
     spork ~ _waveformButtonLoop(sinButton, "sin");
     spork ~ _waveformButtonLoop(triButton, "tri");
   }
+
+  fun void _paramLoop() { 
+    while(samp => now) { 
+      0 => float freqModSum;
+      for(0 => int i; i < _freqMods.cap(); i++)
+        _freqMods[i].last() +=> freqModSum;  
+      12 *=> freqModSum;
+
+      Utility.clamp(_note+_coarseTune+_fineTune+freqModSum, 0, 127) => _freq;
+      _waveforms[_currentWaveform].freq(Std.mtof(_freq));
+    }
+  } 
 }
