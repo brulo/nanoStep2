@@ -7,12 +7,9 @@ public class PitchSequencer extends Sequencer{
   float pitch[][];  
   int trans, oct, vel, lastPitch;
   60 => int gateT; 
-  MidiOut mout;
-  MidiMsg msg;
 
-  fun void init(int newBusMout){
+  fun void init(){
     _init();
-    mout.open(newBusMout);
     4 => oct;
     new int[nPats][nSteps] @=> accent;
     new int[nPats][nSteps] @=> tie;
@@ -83,23 +80,28 @@ public class PitchSequencer extends Sequencer{
       if(accent[pPlay][cStep]) 40 +=> vel;
       (pitch[pPlay][cStep]+trans+(oct*12))$int => int pit;
       if(tie[pPlay][cStep]){
-        midiOut(0x90, pit, vel); // cur note on
+        <<<"cur note on", "">>>;
+        /* midiOut(0x90, pit, vel); // cur note on */
         1::ms => now;
-        midiOut(0x80, lastPitch, 10); // last note off
+        <<<"last note off", "">>>;
+        /* midiOut(0x80, lastPitch, 10); // last note off */
       }
       else{ // gate
-        midiOut(0x90, pit, vel); // cur note on
+        <<<"cur note on", "">>>;
+        /* midiOut(0x90, pit, vel); // cur note on */
         spork ~ gateOff(pit, vel) @=> Shred g; // timed cur note off
         if(pit != lastPitch){
           1::ms => now;
-          midiOut(0x80, lastPitch, vel); 
+          <<<"turn last pitch off", "">>>;
+          /* midiOut(0x80, lastPitch, vel); */ 
         }
       }
       pit => lastPitch;
     }
     else{
       if(!tie[pPlay][cStep] & lastPitch !=0){ 
-        midiOut(0x80, lastPitch, vel);
+        <<< "0 => lastPitch", "">>>;
+        /* midiOut(0x80, lastPitch, vel); */
         0 => lastPitch;
       }
     }
@@ -107,13 +109,8 @@ public class PitchSequencer extends Sequencer{
 
   fun void gateOff(int p, int v){
     gateT::ms => now;
-    midiOut(0x80, p, v); 
+    <<<"gate off", "">>>;
+    /* midiOut(0x80, p, v); */ 
   }
 
-  fun void midiOut(int d1, int d2, int d3){
-    d1 => msg.data1;
-    d2 => msg.data2;
-    d3 => msg.data3;
-    mout.send(msg);
-  }
 }
