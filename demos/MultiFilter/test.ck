@@ -8,7 +8,7 @@ saw.freq(440);
 <<<"MultiFilter test", "">>>;
 <<<"initializing MultiFilter", "">>>;
 mfilt.init();
-mFiltGui.init(mfilt, view, "MultiFilter", 0, 0);
+mFiltGui.init(mfilt, view, 0, 0);
 
 <<<"initializing GUI", "">>>;
 view.display();
