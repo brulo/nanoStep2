@@ -1,10 +1,10 @@
-SawOsc saw => ADSRPlus adsr => Gain gain => dac;
+SawOsc saw => AdsrPlus adsr => Gain gain => dac;
 saw.freq(300);
 gain.gain(.5);
 adsr.init();
-
+AdsrPlusGui adsrGui;
 MAUI_View view;
-adsr.initGUI(view, "ADSR Plus", 0, 0);
+adsrGui.init(adsr, view, 0,0);
 view.display();
 
 while(true) {
