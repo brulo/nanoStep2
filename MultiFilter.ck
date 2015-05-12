@@ -25,8 +25,10 @@ public class MultiFilter extends Chubgraph {
 
   fun int filter() { return _currentFilter; }
   fun int filter(int filt) {
+		inlet =< _filters[_currentFilter];
 		_filters[_currentFilter] =< outlet;
 		Utility.clampi(filt, 0, _filters.cap()) => _currentFilter;	
+		inlet => _filters[_currentFilter];
     _filters[_currentFilter] => outlet; 
 		return _currentFilter;
   }
