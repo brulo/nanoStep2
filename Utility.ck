@@ -3,6 +3,16 @@ public class Utility {
   fun static float clamp(float val, float min, float max) {
     return Math.max(Math.min(val, max), min);
   }
+	
+  fun static int clampi(int val, int min, int max) {
+		if(val > max) {
+			return max;
+		}
+		else if(val < min) {
+			return min;
+		}
+		return val;
+  }
 
   fun static void midiOut(int status, int note, int velocity, MidiOut mout) {
     MidiMsg msg; 
