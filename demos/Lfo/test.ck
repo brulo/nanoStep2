@@ -1,14 +1,16 @@
 Lfo lfo => blackhole;
+/* Lfo lfo => dac; */
 LfoGui lfoGui;
+SawOsc saw => MultiFilter mFilt => dac;
+MultiFilterGui mFiltGui;
 MAUI_View view;
 lfo.init();
-lfo.initGUI(view, "LFO", 0, 0);
+lfoGui.init(lfo, view, "LFO", 0, 0);
 
-SawOsc saw => MultiFilter mFilt => dac;
 mFilt.init();
-mFilt.initGUI(view, "MultiFilter", 0, 250);
+mFiltGui.init(mFilt, view, 0, 250);
 mFilt.addFreqMod(lfo);
 
 view.display();
 
-20::second => now;
+while(samp => now);

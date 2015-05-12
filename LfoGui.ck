@@ -1,4 +1,4 @@
-public class LFO extends Chubgraph {
+public class LfoGui {
 	Lfo lfo;
   MAUI_Slider freqSlider, gainSlider;
   [freqSlider, gainSlider] @=> MAUI_Slider sliders[];
@@ -7,7 +7,8 @@ public class LFO extends Chubgraph {
   TitleBar titleBar;
 
   /* PUBLIC */
-  fun void init(MAUI_View view, string titleName, int x, int y) {
+  fun void init(Lfo theLfo, MAUI_View view, string titleName, int x, int y) {
+		theLfo @=> lfo;
     titleBar.init(x, y, 
                   titleName, 90,
                   5, 9);                  
@@ -32,19 +33,19 @@ public class LFO extends Chubgraph {
 
     spork ~ _freqSliderLoop();
     spork ~ _gainSliderLoop();
-    spork ~ _waveformButtonLoop(sawButton, "saw");
-    spork ~ _waveformButtonLoop(sqrButton, "sqr");
-    spork ~ _waveformButtonLoop(sinButton, "sin");
-    spork ~ _waveformButtonLoop(triButton, "tri");
+    spork ~ _waveformButtonLoop(sawButton, "saw", 0);
+    spork ~ _waveformButtonLoop(sqrButton, "sqr", 1);
+    spork ~ _waveformButtonLoop(sinButton, "sin", 2);
+    spork ~ _waveformButtonLoop(triButton, "tri", 3);
   }
 
-  fun void _waveformButtonLoop(MAUI_Button button, string waveName) {
+  fun void _waveformButtonLoop(MAUI_Button button, string waveName, int waveIdx) {
     button.name(waveName);
     while(button => now)
       if(button.state() == 1) {
         _toggleButtonsOff();
         button.state(1);
-        lfo.waveform(waveName);
+        lfo.waveform(waveIdx);
       }
   }
 

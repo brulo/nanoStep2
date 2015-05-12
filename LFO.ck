@@ -1,4 +1,4 @@
-public class LFO extends Chubgraph {
+public class Lfo extends Chubgraph {
   Osc _waveforms[4];
   SawOsc _saw @=> _waveforms[0];
   SqrOsc _sqr @=> _waveforms[1];
