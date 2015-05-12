@@ -1,97 +1,49 @@
 public class MultiFilter extends Chubgraph {
   FilterBasic _filters[4];
-  LPF lp @=> _filters["lp"];
-  BPF bp @=> _filters["bp"];
-  HPF hp @=> _filters["hp"];
-  ResonZ rez @=> _filters["rez"];
-  ["lp", "bp", "hp", "rez"] @=> string _filterNames[];
-  string _currentFilter;
+  LPF lp @=> _filters[0];
+  BPF bp @=> _filters[1];
+  HPF hp @=> _filters[2];
+  ResonZ rez @=> _filters[3];
+  int _currentFilter;
   float _freq, _Q;
   UGen _freqMods[0];
-
-  // GUI
-  MAUI_Slider freqSlider, QSlider;
-  [freqSlider, QSlider] @=> MAUI_Slider sliders[];
-  TitleBar titleBar;
-
+	30.0 => float _minFreq; 
+	1598 => float _maxFreq;
 
   /* PUBLIC */
+
+  fun void init() {
+    filter(0);
+    freq(1.0);
+    Q(0.0);
+    spork ~ _paramLoop();
+  }
+
   fun void addFreqMod(UGen mod) {
     _freqMods << mod;    
   }
 
-  fun void init() {
-    filter("lp");
-    freq(1.0);
-    Q(0);
-    spork ~ _paramLoop();
-  }
-
-  fun void initGUI(MAUI_View view, string titleName, int x, int y) {
-    titleBar.init(x, y, 
-                  titleName, 90,
-                  5, 9);                  
-    titleBar.addElementsToView(view);
-    x => int xOffset;
-    60 => int titleBarOffset;
-    y + titleBarOffset => int yOffset;
-    for(0 => int i; i < sliders.cap(); i++) {
-      sliders[i].range(0.0, 1.0);
-      view.addElement(sliders[i]);
-    } 
-    freqSlider.name("Cutoff Frequency");
-    freqSlider.value(1.0);
-    QSlider.name("Q");
-    QSlider.value(0.0);
-    freqSlider.position(xOffset, yOffset);
-    QSlider.position(xOffset, yOffset + 50);
-
-    spork ~ _guiLoop();
-  }
-
-  fun string filter() { return _currentFilter; }
-  fun string filter(string name) {
-    if(_isFilterName(name)) {
-      if(_isFilterName(_currentFilter)) {
-        inlet =< _filters[_currentFilter];
-        _filters[_currentFilter] =< outlet;
-      }
-      name => _currentFilter;
-      inlet => _filters[_currentFilter];
-      _filters[_currentFilter] => outlet; 
-      return _currentFilter;
-    }
-    else return "Not a valid waveform";
+  fun int filter() { return _currentFilter; }
+  fun int filter(int filt) {
+		_filters[_currentFilter] =< outlet;
+		Utility.clampi(filt, 0, _filters.cap()) => _currentFilter;	
+    _filters[_currentFilter] => outlet; 
+		return _currentFilter;
   }
 
   fun float freq() { return _freq; }
   fun float freq(float val) {
-    Utility.clamp(val, 0, 1) => _freq;  
+    Utility.clamp(val, 0.0, 1.0) => _freq;  
     return _freq;
   }
 
   fun float Q() { return _Q; }
   fun float Q(float val) {
-    Utility.clamp(val, 0, 1) => _Q; 
+    Utility.clamp(val, 0.0, 1.0) => _Q; 
     return _Q;
   }
 
   /* PRIVATE */
-  fun int _isFilterName(string name) {
-    for(0 => int i; i < _filterNames.cap(); i++) {
-      if(name == _filterNames[i])
-        return 1;
-    }
-    return 0;
-  }
-
-  // poll slider values to set parameters
-  fun void _guiLoop() {
-    while(samp => now) { 
-      freq(freqSlider.value());
-      Q(QSlider.value());
-    }
-  }
   
   fun void _paramLoop() { 
     while(samp => now) { 
@@ -99,7 +51,7 @@ public class MultiFilter extends Chubgraph {
       0 => float freqModSum;
       for(0 => int i; i < _freqMods.cap(); i++)
         Math.fabs(_freqMods[i].last()) +=> freqModSum;  
-      _filters[_currentFilter].freq(Utility.clamp(_freq + freqModSum, 0, 1) * 15980 + 30);
+      _filters[_currentFilter].freq(Utility.clamp(_freq + freqModSum, 0, 1) * _maxFreq + _minFreq);
     }
   } 
 }
