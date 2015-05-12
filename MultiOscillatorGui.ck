@@ -5,21 +5,21 @@ public class MultiOscillatorGui extends Chubgraph {
   [coarseTuneSlider, fineTuneSlider] @=> MAUI_Slider sliders[];
   MAUI_Button sawButton, sqrButton, triButton, sinButton;
   [sawButton, sqrButton, triButton, sinButton] @=> MAUI_Button buttons[];
-  TitleBar titleBar;
+	MAUI_Text titleText;
 
-  fun void init(MultiOscillator mOsc, MAUI_View view, string titleName, int x, int y) {
+  fun void init(MultiOscillator mOsc, MAUI_View view, int x, int y) {
 		mOsc @=> multiOsc;
     for(0 => int i; i < sliders.cap(); i++) {
       sliders[i].range(0.0, 1.0);
       sliders[i].value(0.5);
       view.addElement(sliders[i]);
     } 
-    titleBar.init(x, y, 
-                  titleName, 90,
-                  5, 9);                  
-    titleBar.addElementsToView(view);
+		// title
+		titleText.name("MULTI OSC");
+		titleText.position(x+90, y);
+		view.addElement(titleText);
     x => int xOffset;
-    60 => int titleBarOffset;
+    45 => int titleBarOffset;
     y + titleBarOffset => int yOffset;
     for(0 => int i; i < buttons.cap(); i++) {
       buttons[i].toggleType();
