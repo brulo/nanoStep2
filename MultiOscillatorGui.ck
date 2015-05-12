@@ -46,13 +46,15 @@ public class MultiOscillatorGui extends Chubgraph {
 
   fun void _waveformButtonLoop(MAUI_Button button, string waveName, int waveIdx) {
     button.name(waveName);
-    while(button => now)
+    while(button => now) {
       if(button.state() == 1) {
-				for(0 => int i; i < buttons.cap(); i++) 
+				for(0 => int i; i < buttons.cap(); i++) {
 					buttons[i].state(0);   
+				}
         button.state(1);
         multiOsc.waveform(waveIdx);
       }
+		}
   }
 
   fun void _fineTuneSliderLoop() {
