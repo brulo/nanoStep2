@@ -1,8 +1,8 @@
 public class Clock{
     int _pulsesPerBeat, playing, networking;
-    float BPM, nSteps, swingAmt;
+    float BPM, nSteps, _swingAmount;
 		int cStep;
-    dur stepLen, SPB, swing; 
+    dur _stepLength, SPB, swing; 
     time lastStep;
     Shred loopS;
 		Event pulse;
@@ -27,12 +27,12 @@ public class Clock{
 
     fun void wait() { // checks if a step has passed
         if(cStep % 2 == 0) { 
-            if(now - lastStep >= stepLen + swing) {
+            if(now - lastStep >= _stepLength + swing) {
 							advance();
 						}
         }
         else {
-            if(now - lastStep >= stepLen - swing) {
+            if(now - lastStep >= _stepLength - swing) {
 							advance();
 						}
         }
@@ -70,18 +70,18 @@ public class Clock{
     fun float addToCurrentTempo(int inc) { return tempo(BPM + inc); }
     fun float addToCurrentTempo(float inc) { return tempo(BPM + inc); }
 
-    fun float swingAmount() { return swingAmt; }
+    fun float swingAmount() { return _swingAmount; }
     fun float swingAmount(float s) {
 			Utility.clamp(s, 0.0, 1.0);
-      stepLen * swingAmt => swing;
+      _stepLength * _swingAmount => swing;
     }    
 
     fun int pulsesPerBeat() { return _pulsesPerBeat; }
     fun int pulsesPerBeat(int d) {
         if(d > 0) {
             d => _pulsesPerBeat;
-            SPB / _pulsesPerBeat => stepLen;
-            swingAmount(swingAmt);
+            SPB / _pulsesPerBeat => _stepLength;
+            swingAmount(_swingAmount);
         }
         return _pulsesPerBeat;
     }
