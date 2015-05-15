@@ -30,6 +30,6 @@ public class Lfo extends Chubgraph {
   }
 
   fun void _updateFreq() {
-    _waveforms[_currentWaveform].freq(_freq*100 + 0.01);
+    _waveforms[_currentWaveform].freq(_freq*30 + 0.001);
   }
 }

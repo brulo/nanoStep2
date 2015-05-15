@@ -49,12 +49,13 @@ public class MultiFilter extends Chubgraph {
   
   fun void _paramLoop() { 
     while(samp => now) { 
-      _filters[_currentFilter].Q(_Q * 11 + 1);
+      _filters[_currentFilter].Q(_Q * 4 + 1);
       0 => float freqModSum;
       for(0 => int i; i < _freqMods.cap(); i++) {
         _freqMods[i].last() +=> freqModSum;  
 			}
-      _filters[_currentFilter].freq(Utility.clamp(_freq + freqModSum, 0, 1) * _maxFreq + _minFreq);
+			float val = Utility.clamp(_freq + freqModSum, 0.0, 1.0);
+      _filters[_currentFilter].freq(val * _maxFreq) + _minFreq);
     }
   } 
 }
