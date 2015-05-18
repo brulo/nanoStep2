@@ -1,191 +1,90 @@
-// Clock_OSC.ck
-// A clock that pulse local OSC (and network OSC if desired)
-// by Bruce Lott & Ness Morris, August 2013 
-public class Clock{
-    int stepDiv, playing, networking;
-    float BPM, cStep, nSteps, swingAmt;
-    dur stepLen, SPB, swing; 
-    time lastStep;
-    Shred loopS;
-    OscSend locXmit;    // sends clock info locally
-    OscSend netXmit[0]; // for sending clock over network	
-    OscRecv orec;
+public class Clock {
+    int _stepsPerBeat, _isPlaying, _currentStep;
+		int _numSteps;
+    float _bpm, _swingAmount;
+    dur _stepDur, _swingDur, _spb; 
+    time _lastStep;
+		Event step; 
+		20 => float MIN_BPM;
+		999 => float MAX_BPM;
 
-
-    //-------------------- Functions --------------------
-    //---- Inits ----
-    fun void init(){ init(120.0); }
-    fun void init(float nTempo){
-        locXmit.setHost("localhost", 98765);
-        1 => stepDiv;
-        Math.FLOAT_MAX => nSteps;
-        tempo(nTempo);
-        stepDivider(4); // sets steps to 16th notes
+    fun void init() {
+        4 => _stepsPerBeat;
+        128 => _numSteps;
+        bpm(120.0);
+        stepsPerBeat(4);  // 16th notes
+				spork ~ _mainLoop();
         play(1);
-        spork ~ loop() @=> loopS;
     }
 
-    fun void initOscRecv(){
-        11111 => orec.port;
-        orec.listen();
-        spork ~ playOSC();
-        spork ~ tempoOSC();
-        spork ~ incTempoOSC();
-        spork ~ swingAmountOSC();
-        spork ~ stepDividerOSC();
-        spork ~ killOSC();
-    }
-
-    fun void initNetOsc(string adr, int port){
-        1 => networking;
-        netXmit << new OscSend;
-        netXmit[netXmit.cap()-1].setHost(adr,port);
-    }    
-
-    //---- Clocks Heart <3s ----
-    fun void loop(){ // main loop, if not playing, wait
-        while(true){
-            if(playing) wait();
-            else samp => now;
+    fun void _mainLoop() {
+        while(true) {
+            if(_isPlaying) _advance();
         }
     }
 
-    fun void wait(){ // checks if a step has passed
-        if(cStep%2==0){ 
-            if(now-lastStep >= stepLen + swing) incStep();
+    fun void _advance() {
+        if(_currentStep % 2 == 0) { 
+            if(now - _lastStep >= _stepDur + _swingDur) {
+							_broadcastStep();
+						}
         }
-        else{
-            if(now-lastStep >= stepLen - swing) incStep();
+        else {
+            if(now - _lastStep >= _stepDur - _swingDur) {
+							_broadcastStep();
+						}
         }
-
         samp => now;
     }
 
-    fun void incStep(){ // increments and broadcasts step event
-        now => lastStep;
-        if(cStep+1 < nSteps) 1 +=> cStep;
-        else 0 => cStep;
-        locXmit.startMsg("/c, f");
-        locXmit.addFloat(cStep);
-        if(networking){
-            for(int i; i<netXmit.cap(); i++){
-                netXmit[i].startMsg("/c, f");
-                netXmit[i].addFloat(cStep);
-            }
-        }
+    fun void _broadcastStep() { 
+        now => _lastStep;
+				(_currentStep + 1) % _numSteps => _currentStep;
+				step.broadcast();
     }
 
-    //----- controls -----
-    fun int play(){ return playing; } 
-    fun int play(int p){
-        if(p){
-            now => lastStep; // start playing/if already playing, re-cue
-            0 => cStep;
-            1 => playing;
-            locXmit.startMsg("/c, f");
-            locXmit.addFloat(cStep);
-            if(networking){
-                for(int i; i<netXmit.cap(); i++){
-                    netXmit[i].startMsg("/c, f");
-                    netXmit[i].addFloat(cStep);
-                }
-            }
+    fun int isPlaying() { return _isPlaying; } 
+    fun int play() { return _isPlaying; } 
+    fun int play(int newState) {
+        if(newState) {  // start playing/re-cue
+            now => _lastStep; 
+            0 => _currentStep;
+            1 => _isPlaying;
         }
-        else 0 => playing; // else stop
-        return playing;
+        else 0 => _isPlaying;  // stop
+        return _isPlaying;
+		}
+
+    fun float bpm() { return _bpm; } 
+    fun float bpm(float newBpm) {
+				Utility.clamp(newBpm, MIN_BPM, MAX_BPM) => _bpm;
+        60.0::second / _bpm => _spb;
+        stepsPerBeat(_stepsPerBeat);  // update PPB
+        return _bpm;
+    }
+
+    fun float addToBpm(float amount) {
+			amount + _bpm => float newBpm;
+			Utility.clamp(newBpm, MIN_BPM, MAX_BPM) => newBpm;
+			return bpm(newBpm); 
+		}
+
+    fun float swingAmount() { return _swingAmount; }
+    fun float swingAmount(float amount) {
+			Utility.clamp(amount, 0.0, 1.0) => _swingAmount;
+      _stepDur * _swingAmount => _swingDur;
+			return _swingAmount;
     }    
 
-    fun float tempo(){ return BPM; } 
-    fun float tempo(float newBPM){
-        newBPM => BPM;
-        60.0::second/BPM => SPB;
-        stepDivider(stepDiv);
-        return BPM;
+    fun int stepsPerBeat() { return _stepsPerBeat; }
+    fun int stepsPerBeat(int ppb) {
+        if(ppb > 0) {
+            ppb => _stepsPerBeat;
+            _spb / _stepsPerBeat => _stepDur;
+            swingAmount(_swingAmount);
+        }
+        return _stepsPerBeat;
     }
 
-    fun float incTempo(int inc){ return tempo(BPM + inc); }
-    fun float incTempo(float inc){ return tempo(BPM + inc); }
-
-    fun float swingAmount(){ return swingAmt; }
-    fun float swingAmount(float s){
-        unitClip(s) => swingAmt;
-        stepLen * swingAmt => swing;
-    }    
-
-    fun int stepDivider() { return stepDiv; }
-    fun int stepDivider(int d){
-        if(d>0){
-            d => stepDiv;
-            SPB/stepDiv => stepLen;
-            swingAmount(swingAmt);
-        }
-        return stepDiv;
-    }
-
-    fun dur stepLength(){ return stepLen; }
-
-    fun void kill(){ loopS.exit(); } 
-
-    // OSC    
-    fun void playOSC(){
-    	orec.event("/play, i") @=> OscEvent playEv;
-        while(playEv => now){
-            while(playEv.nextMsg() != 0){	
-                play(playEv.getInt());	
-            }
-        }
-    }
-
-    fun void tempoOSC(){
-    	orec.event("/tempo, f") @=> OscEvent tempoEv;
-        while(tempoEv => now){
-            while(tempoEv.nextMsg() != 0){	
-                tempo(tempoEv.getFloat());	
-            }
-        }
-    }     
-
-    fun void incTempoOSC(){
-    	orec.event("/incTempo, f") @=> OscEvent incTempoEv;
-        while(incTempoEv => now){
-            while(incTempoEv.nextMsg() != 0){	
-                incTempo(incTempoEv.getFloat());	
-            }
-        }
-    }
-
-    fun void swingAmountOSC(){
-    	orec.event("/swing, f") @=> OscEvent swingEv;
-        while(swingEv => now){
-            while(swingEv.nextMsg() != 0){
-                swingAmount(swingEv.getFloat());
-            }
-        }
-    }     
-
-    fun void stepDividerOSC(){
-    	orec.event("/stepDiv, i") @=> OscEvent stepDivEv;
-        while(stepDivEv => now){
-            while(stepDivEv.nextMsg() != 0){	
-                stepDivider(stepDivEv.getInt());			
-            }
-        }
-    }
-
-    fun void killOSC(){
-    	orec.event("/kill") @=> OscEvent killEv;
-        while(killEv => now){
-        	while(killEv.nextMsg() != 0){
-            	kill();
-        	}
-        }
-    } 
-
-    // utilities
-    fun float unitClip(float f){ // clips to 0.0-1.0
-        if(f<0) return 0.0;
-        else if(f>1) return 1.0;
-        else return f;
-    }
-    
+		fun int currentStep() { return _currentStep; }
 }
