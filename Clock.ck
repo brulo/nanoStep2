@@ -7,6 +7,8 @@ public class Clock {
 	Event step; 
 	20 => float MIN_BPM;
 	999 => float MAX_BPM;
+	OscOut oscOut;
+	oscOut.dest("localhost", 1234);
 
 	fun void init() {
 		4 => _stepsPerBeat;
@@ -38,7 +40,7 @@ public class Clock {
 	fun void _broadcastStep() { 
 		now => _lastStep;
 		(_currentStep + 1) % _numSteps => _currentStep;
-		step.broadcast();
+		oscOut.start("/clock").add(_currentStep).send();
 	}
 
 	fun int isPlaying() { return _isPlaying; } 

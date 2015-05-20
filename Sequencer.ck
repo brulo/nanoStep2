@@ -4,33 +4,18 @@
 // by Bruce Lott, 2013
 
 public class Sequencer{
-    int patternLength, numSteps, currentStep; // pattern length, number of steps, current step
-    int numPatterns, patternPlaying, patternEditing; // number of pats, pat playing, pat being edited
-    float trigger[][]; // [pat][step] returns a velocity or note is off (0)
-    Shred clockShred;
+    int patternLen, numSteps, currentStep;
+    int numPatterns, patternPlaying, patternEditing;
+    float trigger[][]; // [pattern][step]
     
     fun void _init(){
         0  => currentStep => patternPlaying => patternEditing;
-        8  => patternLength => numPatterns;
-        64 => numSteps;
+        8  => patternLen => numPatterns;
+        16 => numSteps;
         new float[numPatterns][numSteps] @=> trigger;
         new float[numPatterns][numSteps] @=> triggerBuffer;
         clearAllTriggers();
-        spork ~ clockInit() @=> clockShred;
     }  
-    
-    fun void clockInit(){
-        OscRecv orec;
-        98765 => orec.port;
-        orec.listen();
-        orec.event("/c, f") @=> OscEvent e; //
-        while(e => now){
-            while(e.nextMsg() !=0){
-                Math.fmod(e.getFloat(), patternLength)$int => currentStep;
-                doStep(); 
-            }
-        }
-    }
     
     fun void doStep(){ } // what happens when arriving at a new step
                          // override this in child class     
