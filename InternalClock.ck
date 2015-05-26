@@ -1,66 +1,39 @@
-public class Clock {
-	int _stepsPerBeat, _isPlaying, _numSteps;
-	-1 => int _currentStep;
-	float _bpm, _swingAmount;
+public class InternalClock extends Clock {
+	float _bpm;
 	dur _stepDur, _swingDur; 
-	time _lastStep;
-	Event step; 
+	4 => int _stepsPerBeat;  // 16ths
 	20 => float MIN_BPM;
 	999 => float MAX_BPM;
-	OscOut oscOut;
-	oscOut.dest("localhost", 1234);
 
 	fun void init() {
-		4 => _stepsPerBeat;
-		128 => _numSteps;
-		bpm(120.0);
-		stepsPerBeat(4);  // 16th notes
+		bpm(130.0);
+		swingAmount(0.2);
 		spork ~ _main();
-		play(1);
+		start();
 	}
 
 	fun void _main() {
+	time lastPulse;  // unswung steps
 		while(true) {
-			if(_isPlaying) { 
-				if(_currentStep % 2 == 0) { 
-					if(now - _lastStep >= _stepDur + _swingDur) {
-						_broadcastStep();
+			if(isPlaying) { 
+				if(now - lastPulse >= _stepDur) {
+					if(currentStep % 2 == 0) {
+						spork ~ _broadcastStep(1);  // swung
 					}
-				}
-				else {
-					if(now - _lastStep >= _stepDur - _swingDur) {
-						_broadcastStep();
+					else {
+						spork ~ _broadcastStep(0);  // unswung
 					}
+					now => lastPulse;
 				}
 			}
 			samp => now;
 		}
 	}
 
-	fun void _broadcastStep() { 
-		now => _lastStep;
-		(_currentStep + 1) % _numSteps => _currentStep;
-		oscOut.start("/clock").add(_currentStep).send();
-	}
-
-	fun int isPlaying() { return _isPlaying; } 
-	fun int play() { return _isPlaying; } 
-	fun int play(int newState) {
-		if(newState > 0) {  // start playing/re-cue
-			now => _lastStep; 
-			-1 => _currentStep;
-			1 => _isPlaying;
-		}
-		else { 
-			0 => _isPlaying;  // stop
-		}
-		return _isPlaying;
-	}
-
 	fun float bpm() { return _bpm; } 
 	fun float bpm(float newBpm) {
 		Utility.clamp(newBpm, MIN_BPM, MAX_BPM) => _bpm;
-		stepsPerBeat(_stepsPerBeat);  // update PPB
+		_updateStepDur();
 		return _bpm;
 	}
 
@@ -70,23 +43,17 @@ public class Clock {
 		return bpm(newBpm); 
 	}
 
-	fun float swingAmount() { return _swingAmount; }
-	fun float swingAmount(float amount) {
-		Utility.clamp(amount, 0.0, 1.0) => _swingAmount;
-		_stepDur * _swingAmount => _swingDur;
-		return _swingAmount;
-	}    
-
 	fun int stepsPerBeat() { return _stepsPerBeat; }
-	fun int stepsPerBeat(int ppb) {
-		if(ppb > 0) {
-			ppb => _stepsPerBeat;
-			60::second / _bpm => dur secondsPerBeat;
-			secondsPerBeat / _stepsPerBeat => _stepDur;
-			swingAmount(_swingAmount);
+	fun int stepsPerBeat(int theStepsPerBeat) {
+		if(theStepsPerBeat > 0) {
+			theStepsPerBeat => _stepsPerBeat;
+			_updateStepDur();
 		}
 		return _stepsPerBeat;
 	}
 
-	fun int currentStep() { return _currentStep; }
+	fun void _updateStepDur() {
+		60::second / _bpm => dur secondsPerBeat;
+		secondsPerBeat / _stepsPerBeat => _stepDur;
+	}
 }
