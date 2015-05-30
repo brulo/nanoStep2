@@ -6,11 +6,11 @@ public class MultiFilter extends Chubgraph {
   ResonZ rez @=> _filters[3];
   int _currentFilter;
   float _freq, _Q;
-  UGen _freqMods[0];
-	30.0 => float _minFreq; 
-	1598 => float _maxFreq;
-
-  /* PUBLIC */
+  UGen _freqMods[2];
+  5.0 => float MAX_Q;
+  30.0 => float MIN_FREQ; 
+  15070.0 => float MAX_FREQ;
+  5000.0 => float MOD_MAX_FREQ; 
 
   fun void init() {
     filter(0);
@@ -19,18 +19,19 @@ public class MultiFilter extends Chubgraph {
     spork ~ _paramLoop();
   }
 
-  fun void addFreqMod(UGen mod) {
-    _freqMods << mod;    
+  fun void setFreqMod(UGen mod, int idx) {
+    Utility.clampi(idx, 0, _freqMod.cap()) => int clampedIdx;
+    mod @=> _freqMod[clampedIdx];
   }
 
   fun int filter() { return _currentFilter; }
   fun int filter(int filt) {
-		inlet =< _filters[_currentFilter];
-		_filters[_currentFilter] =< outlet;
-		Utility.clampi(filt, 0, _filters.cap()) => _currentFilter;	
-		inlet => _filters[_currentFilter];
+    inlet =< _filters[_currentFilter];
+    _filters[_currentFilter] =< outlet;
+    Utility.clampi(filt, 0, _filters.cap()) => _currentFilter;	
+    inlet => _filters[_currentFilter];
     _filters[_currentFilter] => outlet; 
-		return _currentFilter;
+    return _currentFilter;
   }
 
   fun float freq() { return _freq; }
@@ -45,17 +46,21 @@ public class MultiFilter extends Chubgraph {
     return _Q;
   }
 
-  /* PRIVATE */
-  
   fun void _paramLoop() { 
     while(samp => now) { 
-      _filters[_currentFilter].Q(_Q * 4 + 1);
       0 => float freqModSum;
       for(0 => int i; i < _freqMods.cap(); i++) {
-        _freqMods[i].last() +=> freqModSum;  
-			}
-			float val = Utility.clamp(_freq + freqModSum, 0.0, 1.0);
-      _filters[_currentFilter].freq(val * _maxFreq) + _minFreq);
+	// convert -1.0 - 1.0 to 0.0 - 1.0, then add to sum
+	(_freqMods[i].last() + 1) * 0.5 +=> freqModSum;
+      }
+      // scale sum to 0.0 - 1.0
+      freqModSum * (1.0 / _freqMods.cap()) => freqModAmount;
+      freqModAmount * MOD_MAX_FREQ => float modFreq;
+
+      (_freq * MAX_FREQ) + MIN_FREQ => float baseFreq;
+
+      _filters[_currentFilter].freq(baseFreq + modFreq);
+      _filters[_currentFilter].Q(_Q * 4 + 1);
     }
   } 
 }
