@@ -6,23 +6,43 @@ public class MultiFilter extends Chubgraph {
   ResonZ rez @=> _filters[3];
   int _currentFilter;
   float _freq, _Q;
-  UGen _freqMods[2];
-  5.0 => float MAX_Q;
-  30.0 => float MIN_FREQ; 
-  15070.0 => float MAX_FREQ;
-  5000.0 => float MOD_MAX_FREQ; 
+	UGen _lfoFreqModSource, _envFreqModSource;
+	0.0 => float _lfoFreqModAmount;
+	0.0 => float _envFreqModAmount;
+	1.0 => float MIN_Q;
+  2.0 => float MAX_Q;
+  10.0 => float MIN_FREQ; 
+  12070.0 => float MAX_FREQ;
+  5000.0 => float MAX_MOD_FREQ; 
 
   fun void init() {
     filter(0);
-    freq(1.0);
-    Q(0.0);
+    freq(MAX_FREQ);
+    Q(1.0);
     spork ~ _paramLoop();
   }
 
-  fun void setFreqMod(UGen mod, int idx) {
-    Utility.clampi(idx, 0, _freqMod.cap()) => int clampedIdx;
-    mod @=> _freqMod[clampedIdx];
-  }
+	fun UGen lfoFreqModSource(UGen source) {
+		source => blackhole;
+		source @=> _lfoFreqModSource;
+		return _lfoFreqModSource;;
+	}
+
+	fun UGen envFreqModSource(UGen source) {
+		source => blackhole;
+		source @=> _envFreqModSource;
+		return _envFreqModSource;;
+	}
+
+	fun float lfoFreqModAmount(float val) {
+		Utility.clamp(val, 0.0, 1.0) => _lfoFreqModAmount;
+		return _lfoFreqModAmount;
+	}
+
+	fun float envFreqModAmount(float val) {
+		Utility.clamp(val, 0.0, 1.0) => _envFreqModAmount;
+		return _envFreqModAmount;
+	}
 
   fun int filter() { return _currentFilter; }
   fun int filter(int filt) {
@@ -36,31 +56,30 @@ public class MultiFilter extends Chubgraph {
 
   fun float freq() { return _freq; }
   fun float freq(float val) {
-    Utility.clamp(val, 0.0, 1.0) => _freq;  
+    Utility.clamp(val, MIN_FREQ, MAX_FREQ) => _freq;  
     return _freq;
   }
 
   fun float Q() { return _Q; }
   fun float Q(float val) {
-    Utility.clamp(val, 0.0, 1.0) => _Q; 
+    Utility.clamp(val, MIN_Q, MAX_Q) => _Q; 
     return _Q;
   }
 
   fun void _paramLoop() { 
     while(samp => now) { 
-      0 => float freqModSum;
-      for(0 => int i; i < _freqMods.cap(); i++) {
-	// convert -1.0 - 1.0 to 0.0 - 1.0, then add to sum
-	(_freqMods[i].last() + 1) * 0.5 +=> freqModSum;
-      }
-      // scale sum to 0.0 - 1.0
-      freqModSum * (1.0 / _freqMods.cap()) => freqModAmount;
-      freqModAmount * MOD_MAX_FREQ => float modFreq;
+			float lfoFreqRatio, envFreqRatio;  // 0 - 1 amount of MAX_MOD_FREQ to use
+			// remap -1 - 1 to 0 - 1, then scale by our amount parameter
+			((_lfoFreqModSource.last() + 1) * 0.5) * _lfoFreqModAmount => lfoFreqRatio;
+			// already 0 - 1, just scale
+			_envFreqModSource.last() * _envFreqModAmount => envFreqRatio;
 
-      (_freq * MAX_FREQ) + MIN_FREQ => float baseFreq;
+			// calc current freq value of mods
+			lfoFreqRatio * MAX_MOD_FREQ => float lfoFreqMod;
+			envFreqRatio * MAX_MOD_FREQ => float envFreqMod;
 
-      _filters[_currentFilter].freq(baseFreq + modFreq);
-      _filters[_currentFilter].Q(_Q * 4 + 1);
+      _filters[_currentFilter].freq(_freq + lfoFreqMod + envFreqMod);
+      _filters[_currentFilter].Q(_Q);
     }
   } 
 }
