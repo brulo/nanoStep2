@@ -4,18 +4,22 @@ public class MultiFilter extends Chubgraph {
   BPF bp @=> _filters[1];
   HPF hp @=> _filters[2];
   ResonZ rez @=> _filters[3];
-	ModSource freqLfo, freqEnv;
+	ModSource freqLfo, freqEnv, freqPitch;
   int _currentFilter;
   float _freq, _Q;
 	1.0 => float MIN_Q;
   2.0 => float MAX_Q;
   10.0 => float MIN_FREQ; 
   12070.0 => float MAX_FREQ;
-  5000.0 => float MAX_MOD_FREQ; 
 
   fun void init() {
 		0.0 => freqEnv.sourceMin;
-		5000 => freqEnv.maxValue => freqLfo.maxValue;
+		0.0 => freqPitch.sourceMin;
+		20000.0 => freqPitch.sourceMax;
+		freqPitch.sourceMax * 2 => freqPitch.maxValue;
+		1 => freqPitch.isPitchTracking;
+		0 => freqPitch.isExponential;
+		10000 => freqEnv.maxValue => freqLfo.maxValue;
     filter(0);
     freq(MAX_FREQ);
     Q(1.0);
@@ -46,7 +50,7 @@ public class MultiFilter extends Chubgraph {
 
   fun void _paramLoop() { 
     while(samp => now) { 
-      _filters[_currentFilter].freq(_freq + freqLfo.value() + freqEnv.value());
+      _filters[_currentFilter].freq(_freq + freqLfo.value() + freqEnv.value() + freqPitch.value());
       _filters[_currentFilter].Q(_Q);
     }
   } 
