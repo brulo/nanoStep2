@@ -60,13 +60,14 @@ public class MultiFilterGui {
 	fun void _typeButtonLoop(MAUI_Button button, string filtName, int filtIdx) {
 		button.name(filtName);
 		while(button => now) {
-			if(button.state() == 1) {
+			if(button.state() == 1 && multiFilter.filter() != filtIdx) {
+				<<<multiFilter.filter(), filtIdx>>>;
 				for(0 => int i; i < buttons.cap(); i++) {
 					buttons[i].state(0);   
 				}
-				button.state(1);
 				multiFilter.filter(filtIdx);
 			}
+			button.state(1);
 		}
 	}
 
@@ -74,8 +75,8 @@ public class MultiFilterGui {
 		while(samp => now) { 
 			multiFilter.freq(freqSlider.value());
 			multiFilter.Q(QSlider.value());
-			multiFilter.lfoFreqModAmount(lfoModSlider.value());
-			multiFilter.envFreqModAmount(envModSlider.value());
+			multiFilter.freqLfo.amount((lfoModSlider.value()));
+			multiFilter.freqEnv.amount((envModSlider.value()));
 		}
 	}
 }

@@ -4,11 +4,9 @@ public class MultiFilter extends Chubgraph {
   BPF bp @=> _filters[1];
   HPF hp @=> _filters[2];
   ResonZ rez @=> _filters[3];
+	ModSource freqLfo, freqEnv;
   int _currentFilter;
   float _freq, _Q;
-	UGen _lfoFreqModSource, _envFreqModSource;
-	0.0 => float _lfoFreqModAmount;
-	0.0 => float _envFreqModAmount;
 	1.0 => float MIN_Q;
   2.0 => float MAX_Q;
   10.0 => float MIN_FREQ; 
@@ -16,33 +14,13 @@ public class MultiFilter extends Chubgraph {
   5000.0 => float MAX_MOD_FREQ; 
 
   fun void init() {
+		0.0 => freqEnv.sourceMin;
+		5000 => freqEnv.maxValue => freqLfo.maxValue;
     filter(0);
     freq(MAX_FREQ);
     Q(1.0);
     spork ~ _paramLoop();
   }
-
-	fun UGen lfoFreqModSource(UGen source) {
-		source => blackhole;
-		source @=> _lfoFreqModSource;
-		return _lfoFreqModSource;;
-	}
-
-	fun UGen envFreqModSource(UGen source) {
-		source => blackhole;
-		source @=> _envFreqModSource;
-		return _envFreqModSource;;
-	}
-
-	fun float lfoFreqModAmount(float val) {
-		Utility.clamp(val, 0.0, 1.0) => _lfoFreqModAmount;
-		return _lfoFreqModAmount;
-	}
-
-	fun float envFreqModAmount(float val) {
-		Utility.clamp(val, 0.0, 1.0) => _envFreqModAmount;
-		return _envFreqModAmount;
-	}
 
   fun int filter() { return _currentFilter; }
   fun int filter(int filt) {
@@ -68,17 +46,7 @@ public class MultiFilter extends Chubgraph {
 
   fun void _paramLoop() { 
     while(samp => now) { 
-			float lfoFreqRatio, envFreqRatio;  // 0 - 1 amount of MAX_MOD_FREQ to use
-			// remap -1 - 1 to 0 - 1, then scale by our amount parameter
-			((_lfoFreqModSource.last() + 1) * 0.5) * _lfoFreqModAmount => lfoFreqRatio;
-			// already 0 - 1, just scale
-			_envFreqModSource.last() * _envFreqModAmount => envFreqRatio;
-
-			// calc current freq value of mods
-			lfoFreqRatio * MAX_MOD_FREQ => float lfoFreqMod;
-			envFreqRatio * MAX_MOD_FREQ => float envFreqMod;
-
-      _filters[_currentFilter].freq(_freq + lfoFreqMod + envFreqMod);
+      _filters[_currentFilter].freq(_freq + freqLfo.value() + freqEnv.value());
       _filters[_currentFilter].Q(_Q);
     }
   } 
