@@ -61,7 +61,6 @@ public class MultiFilterGui {
 		button.name(filtName);
 		while(button => now) {
 			if(button.state() == 1 && multiFilter.filter() != filtIdx) {
-				<<<multiFilter.filter(), filtIdx>>>;
 				for(0 => int i; i < buttons.cap(); i++) {
 					buttons[i].state(0);   
 				}
