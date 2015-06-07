@@ -1,6 +1,6 @@
-SawOsc saw => AdsrPlus adsr => Gain gain => dac;
+SawOsc saw => AdsrPlus adsr => dac;
 saw.freq(300);
-gain.gain(.5);
+saw.gain(.2);
 adsr.init();
 AdsrPlusGui adsrGui;
 MAUI_View view;
@@ -9,7 +9,9 @@ view.display();
 
 while(true) {
   adsr.keyOn();
+	<<<adsr.envelope.decayTime()>>>;
   500::ms => now;
   adsr.keyOff();
+	<<<adsr.envelope.decayTime()>>>;
   500::ms => now;
 }

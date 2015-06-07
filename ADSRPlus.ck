@@ -3,6 +3,8 @@ public class AdsrPlus extends Chubgraph {
   inlet => ADSR envelope => outlet;
   float _attackTime, _decayTime, _sustainLevel, _releaseTime;
 	0 => int keyPosition;
+	0.01::ms => dur minTime;
+	2::second => dur maxTime;
 
   fun void init() {
     attackTime(0.0);
@@ -24,15 +26,14 @@ public class AdsrPlus extends Chubgraph {
   fun float attackTime() { return _attackTime; }
   fun float attackTime(float val) {
     Utility.clamp(val, 0.0, 1.0) => _attackTime;
-    envelope.attackTime((_attackTime*500+1)::ms);
+    envelope.attackTime(_attackTime * maxTime + minTime);
     return _attackTime;
   }
 
-  
   fun float decayTime() { return _decayTime; }
   fun float decayTime(float val) {
     Utility.clamp(val, 0.0, 1.0) => _decayTime;
-    envelope.decayTime((_decayTime*500+1)::ms);
+    envelope.decayTime(_decayTime * maxTime + minTime);
     return _decayTime;
   }
   
@@ -46,7 +47,7 @@ public class AdsrPlus extends Chubgraph {
   fun float releaseTime() { return _releaseTime; }
   fun float releaseTime(float val) {
     Utility.clamp(val, 0.0, 1.0) => _releaseTime;
-    envelope.releaseTime((_releaseTime*500+1)::ms);
+    envelope.releaseTime(_releaseTime * maxTime + minTime);
     return _releaseTime;
   }
 }
