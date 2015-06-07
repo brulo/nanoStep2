@@ -8,6 +8,8 @@ public class MultiOscillator extends Chubgraph {
   // MIDI note, tuning modifiers, and the resultant freq.
   float _note, _coarseTune, _fineTune;
 	ModSource freqLfo, freqEnv;
+	0.0 => float minFreq;
+	18000.0 => float maxFreq;
 
   fun void init() {
 		0.0 => freqEnv.sourceMin;
@@ -47,12 +49,12 @@ public class MultiOscillator extends Chubgraph {
 	}
 
   fun void _paramLoop() { 
-		float _freq;
+		float freq;
     while(samp => now) { 
-      Utility.clamp(_note + _coarseTune + _fineTune, 0.0, 127.0) => _freq;
-			freqLfo.value() + freqEnv.value() +=> _freq;
-			Utility.clamp(_freq, 0.0, 18000.0) => _freq;
-      _waveforms[_currentWaveform].freq(Std.mtof(_freq));
+      Utility.clamp(_note + _coarseTune + _fineTune, 0.0, 127.0) => freq;
+			freqLfo.value() + freqEnv.value() +=> freq;
+			Utility.clamp(freq, minFreq, maxFreq) => freq;
+      _waveforms[_currentWaveform].freq(Std.mtof(freq));
     }
   } 
 }

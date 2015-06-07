@@ -7,10 +7,10 @@ public class MultiFilter extends Chubgraph {
 	ModSource freqLfo, freqEnv, freqPitch;
   int _currentFilter;
   float _freq, _Q;
-	1.0 => float MIN_Q;
-  2.0 => float MAX_Q;
-  10.0 => float MIN_FREQ; 
-  12070.0 => float MAX_FREQ;
+	1.0 => float minQ;
+  2.0 => float maxQ;
+  10.0 => float minFreq; 
+  12070.0 => float maxFreq;
 
   fun void init() {
 		0.0 => freqEnv.sourceMin;
@@ -22,7 +22,7 @@ public class MultiFilter extends Chubgraph {
 		1 => freqPitch.isPitchTracking;
 		10000 => freqEnv.maxValue => freqLfo.maxValue;
     filter(0);
-    freq(MAX_FREQ);
+    freq(maxFreq);
     Q(1.0);
     spork ~ _paramLoop();
   }
@@ -51,11 +51,11 @@ public class MultiFilter extends Chubgraph {
 
   fun void _paramLoop() { 
     while(samp => now) { 
-			Utility.remap(_freq, 0.0, 1.0, MIN_FREQ, MAX_FREQ) => float theFreq;
+			Utility.remap(_freq, 0.0, 1.0, minFreq, maxFreq) => float theFreq;
 			Utility.clamp(theFreq + freqLfo.value() + freqEnv.value() + freqPitch.value(),
 					5.0, 24000.0) => float freqSum;
       _filters[_currentFilter].freq(freqSum);
-			_filters[_currentFilter].Q(Utility.remap(_Q, 0.0, 1.0, MIN_Q, MAX_Q));
+			_filters[_currentFilter].Q(Utility.remap(_Q, 0.0, 1.0, minQ, maxQ));
     }
   } 
 }
