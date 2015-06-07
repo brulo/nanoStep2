@@ -4,14 +4,13 @@ public class Lfo extends Chubgraph {
   SqrOsc _sqr @=> _waveforms[1];
   TriOsc _tri @=> _waveforms[2];
   SinOsc _sin @=> _waveforms[3];
-
   int _currentWaveform;
   float _freq;
+	30.0 => float MAX_FREQ;
+	0.001 => float MIN_FREQ;
 
-  /* PUBLIC */
   fun void init() {
     waveform(0);
-    gain(0.5); 
   } 
 
   fun int waveform() { return _currentWaveform; }
@@ -25,11 +24,7 @@ public class Lfo extends Chubgraph {
   fun float freq() { return _freq; }
   fun float freq(float val) {
     Utility.clamp(val, 0.0, 1.0) => _freq;
-    _updateFreq();
+    _waveforms[_currentWaveform].freq(_freq * MAX_FREQ + MIN_FREQ);
     return _freq;
-  }
-
-  fun void _updateFreq() {
-    _waveforms[_currentWaveform].freq(_freq*30 + 0.001);
   }
 }
