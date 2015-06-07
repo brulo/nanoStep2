@@ -11,7 +11,7 @@ public class LfoGui {
 
 		// title
 		titleText.name("LFO");
-		titleText.position(x + 95, y);
+		titleText.position(x + 105, y);
 		view.addElement(titleText);
 
     60 => int titleOffset;
