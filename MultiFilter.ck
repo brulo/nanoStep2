@@ -39,22 +39,23 @@ public class MultiFilter extends Chubgraph {
 
   fun float freq() { return _freq; }
   fun float freq(float val) {
-    Utility.clamp(val, MIN_FREQ, MAX_FREQ) => _freq; 
+    Utility.clamp(val, 0.0, 1.0) => _freq; 
     return _freq;
   }
 
   fun float Q() { return _Q; }
   fun float Q(float val) {
-    Utility.clamp(val, MIN_Q, MAX_Q) => _Q; 
+    Utility.clamp(val, 0.0, 1.0) => _Q; 
     return _Q;
   }
 
   fun void _paramLoop() { 
     while(samp => now) { 
-			Utility.clamp(_freq + freqLfo.value() + freqEnv.value() + freqPitch.value(),
+			Utility.remap(_freq, 0.0, 1.0, MIN_FREQ, MAX_FREQ) => float theFreq;
+			Utility.clamp(theFreq + freqLfo.value() + freqEnv.value() + freqPitch.value(),
 					5.0, 24000.0) => float freqSum;
       _filters[_currentFilter].freq(freqSum);
-			_filters[_currentFilter].Q(_Q);
+			_filters[_currentFilter].Q(Utility.remap(_Q, 0.0, 1.0, MIN_Q, MAX_Q));
     }
   } 
 }

@@ -1,6 +1,10 @@
 public class MultiFilterGui {
 	MultiFilter multiFilter;
-	MAUI_Slider freqSlider, QSlider, lfoModSlider, envModSlider, pitchModSlider;
+	MAUI_Slider freqSlider, QSlider, lfoModSlider; 
+	MAUI_Slider envModSlider, pitchModSlider;
+	[freqSlider, QSlider, lfoModSlider, 
+		envModSlider, pitchModSlider] @=> MAUI_Slider sliders[];
+
 	MAUI_Button lpButton, bpButton, hpButton, rzButton;
 	[lpButton, bpButton, hpButton, rzButton] @=> MAUI_Button buttons[];
 	MAUI_Text titleText;
@@ -28,32 +32,17 @@ public class MultiFilterGui {
 		lpButton.state(1);
 
 		// sliders
+		for(0 => int i; i < sliders.cap(); i++) {
+			sliders[i].range(0.0, 1.0);
+			sliders[i].value(0.0);
+			sliders[i].position(xOffset, yOffset + 50 + (i * 50));
+			view.addElement(sliders[i]);
+		}
 		freqSlider.name("Cutoff Freq");
-		freqSlider.range(multiFilter.MIN_FREQ, multiFilter.MAX_FREQ);
-		freqSlider.value(multiFilter.MAX_FREQ);
 		QSlider.name("Q");
-		QSlider.range(multiFilter.MIN_Q, multiFilter.MAX_Q);
-		QSlider.value(multiFilter.MIN_Q);
 		lfoModSlider.name("Lfo Freq Mod");
-		lfoModSlider.range(0.0, 1.0);
-		lfoModSlider.value(0.0);
 		envModSlider.name("Env Freq Mod");
-		envModSlider.range(0.0, 1.0);
-		envModSlider.value(0.0);
 		pitchModSlider.name("Pitch Tracking Freq Mod");
-		pitchModSlider.range(0.0, 1.0);
-		pitchModSlider.value(0.0);
-		
-		freqSlider.position(xOffset, yOffset + 50);
-		QSlider.position(xOffset, yOffset + 100);
-		lfoModSlider.position(xOffset, yOffset + 150);
-		envModSlider.position(xOffset, yOffset + 200);
-		pitchModSlider.position(xOffset, yOffset + 250);
-		view.addElement(freqSlider);
-		view.addElement(QSlider);
-		view.addElement(lfoModSlider);
-		view.addElement(envModSlider);
-		view.addElement(pitchModSlider);
 
 		spork ~ _typeButtonLoop(lpButton, "LP", 0);
 		spork ~ _typeButtonLoop(bpButton, "BP", 1);
