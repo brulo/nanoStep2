@@ -1,38 +1,28 @@
-MultiOscillator mOsc => Gain g => dac;
+MultiOscillator mOsc => dac;
+mOsc.init();
+mOsc.gain(0.5);
+mOsc.note(40);
+
+// freq lfo
+SinOsc lfo => blackhole;
+lfo.freq(2);
+lfo @=> mOsc.freqLfo.source;
+
+// freq env
+Step step => ADSR env => blackhole;
+step.next(1);
+env.set(20::ms, 0::ms, 1, 500::ms);
+env @=> mOsc.freqEnv.source;
+
 MultiOscillatorGui mOscGui;
 MAUI_View view;
-g.gain(0.4);
-
-<<<"MultiOscillator test", "">>>;
-<<<"initializing MultiOscillator", "">>>;
-mOsc.init();
-
-<<<"initializing GUI", "">>>;
 mOscGui.init(mOsc, view, 0, 0);
 view.display();
 
-<<<"initial waveform: saw", "">>>;
-mOsc.note(mOsc.note() + 32);
-1::second => now;
-/*
-<<<"waveform: sqr", "">>>;
-mOsc.waveform("sqr");
-1::second => now;
 
-<<<"waveform: sin", "">>>;
-mOsc.waveform("sin");
-1::second => now;
-
-<<<"waveform: tri", "">>>;
-mOsc.waveform("tri");
-1::second => now;
-
-<<<"ascending chromatic scale">>>;
-for(0 => int i; i <= 12; i++) {
-  mOsc.note(48 + i);
-  200::ms => now;
+while(true) {
+	env.keyOn();
+	0.1::second => now;
+	env.keyOff();
+	1::second => now;
 }
-*/
-<<<"hand test the GUI now", "">>>;
-
-20::second => now;

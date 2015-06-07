@@ -6,21 +6,17 @@ public class MultiOscillator extends Chubgraph {
   SinOsc _sin @=> _waveforms[3];
   int _currentWaveform;
   // MIDI note, tuning modifiers, and the resultant freq.
-  float _note, _coarseTune, _fineTune, _freq;
-	// these get added together then added to _freq.
-  UGen _freqMods[0]; 
-
-  /* PUBLIC */  
+  float _note, _coarseTune, _fineTune;
+	ModSource freqLfo, freqEnv;
 
   fun void init() {
+		0.0 => freqEnv.sourceMin;
+		0 => freqEnv.isCentered;
+		100 => freqEnv.maxValue => freqLfo.maxValue;
     waveform(0);
     note(36);
     gain(0.25);
     spork ~ _paramLoop();
-  }
-
-  fun void addFreqMod(UGen mod) {
-    _freqMods << mod;    
   }
 
   fun float note() { return _note; }
@@ -42,6 +38,7 @@ public class MultiOscillator extends Chubgraph {
     return _fineTune;
   }
 
+	fun int waveform() { return _currentWaveform; }
   fun int waveform(int wf) {
     _waveforms[_currentWaveform] =< outlet;	
 		Utility.clampi(wf, 0, _waveforms.cap()) => _currentWaveform;
@@ -49,16 +46,12 @@ public class MultiOscillator extends Chubgraph {
 		return _currentWaveform;
 	}
 
-  /* PRIVATE */
-
   fun void _paramLoop() { 
+		float _freq;
     while(samp => now) { 
-      0 => float freqModSum;
-      for(0 => int i; i < _freqMods.cap(); i++) {
-        _freqMods[i].last() +=> freqModSum;
-			}
-
-      Utility.clamp(_note+_coarseTune+_fineTune+freqModSum, 0.0, 127.0) => _freq;
+      Utility.clamp(_note + _coarseTune + _fineTune, 0.0, 127.0) => _freq;
+			freqLfo.value() + freqEnv.value() +=> _freq;
+			Utility.clamp(_freq, 0.0, 18000.0) => _freq;
       _waveforms[_currentWaveform].freq(Std.mtof(_freq));
     }
   } 

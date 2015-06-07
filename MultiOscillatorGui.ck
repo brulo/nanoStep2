@@ -1,8 +1,9 @@
 public class MultiOscillatorGui extends Chubgraph {
 	MultiOscillator multiOsc;
   // GUI
-  MAUI_Slider coarseTuneSlider, fineTuneSlider;
-  [coarseTuneSlider, fineTuneSlider] @=> MAUI_Slider sliders[];
+  MAUI_Slider coarseTuneSlider, fineTuneSlider, lfoAmountSlider, envAmountSlider;
+  [coarseTuneSlider, fineTuneSlider, 
+		lfoAmountSlider, envAmountSlider] @=> MAUI_Slider sliders[];
   MAUI_Button sawButton, sqrButton, triButton, sinButton;
   [sawButton, sqrButton, triButton, sinButton] @=> MAUI_Button buttons[];
 	MAUI_Text titleText;
@@ -14,6 +15,8 @@ public class MultiOscillatorGui extends Chubgraph {
       sliders[i].value(0.5);
       view.addElement(sliders[i]);
     } 
+		lfoAmountSlider.value(0.0);
+		envAmountSlider.value(0.0);
 		// title
 		titleText.name("MULTI OSC");
 		titleText.position(x+90, y);
@@ -31,39 +34,39 @@ public class MultiOscillatorGui extends Chubgraph {
     sawButton.state(1);
     coarseTuneSlider.name("Coarse Tune");
     fineTuneSlider.name("Fine Tune");
+		lfoAmountSlider.name("Lfo Amount");
+		envAmountSlider.name("Env Amount");
     coarseTuneSlider.position(xOffset, yOffset + 45);
     fineTuneSlider.position(xOffset, yOffset + 95);
+    lfoAmountSlider.position(xOffset, yOffset + 145);
+    envAmountSlider.position(xOffset, yOffset + 195);
 
-    spork ~ _coarseTuneSliderLoop();
-    spork ~ _fineTuneSliderLoop();
+    spork ~ _sliderLoop();
     spork ~ _waveformButtonLoop(sawButton, "saw", 0);
     spork ~ _waveformButtonLoop(sqrButton, "sqr", 1);
     spork ~ _waveformButtonLoop(sinButton, "tri", 2);
     spork ~ _waveformButtonLoop(triButton, "sin", 3);
   }
 
-  /* PRIVATE */
-
   fun void _waveformButtonLoop(MAUI_Button button, string waveName, int waveIdx) {
     button.name(waveName);
     while(button => now) {
-      if(button.state() == 1) {
+      if(button.state() == 1 && waveIdx != multiOsc.waveform()) {
 				for(0 => int i; i < buttons.cap(); i++) {
 					buttons[i].state(0);   
 				}
-        button.state(1);
         multiOsc.waveform(waveIdx);
       }
+      button.state(1);
 		}
   }
 
-  fun void _fineTuneSliderLoop() {
-    while(fineTuneSlider => now)
+  fun void _sliderLoop() {
+    while(samp => now) {
       multiOsc.fineTune(fineTuneSlider.value()); 
-  }
-
-  fun void _coarseTuneSliderLoop() {
-    while(coarseTuneSlider => now)
       multiOsc.coarseTune(coarseTuneSlider.value());
+      multiOsc.freqLfo.amount(lfoAmountSlider.value());
+      multiOsc.freqEnv.amount(envAmountSlider.value());
+		}
   }
 }
