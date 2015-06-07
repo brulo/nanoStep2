@@ -6,7 +6,7 @@ public class LfoGui {
 	MAUI_Text titleText;
 
   /* PUBLIC */
-  fun void init(Lfo theLfo, MAUI_View view, string titleName, int x, int y) {
+  fun void init(Lfo theLfo, MAUI_View view, int x, int y) {
 		theLfo @=> lfo;
 
 		// title
