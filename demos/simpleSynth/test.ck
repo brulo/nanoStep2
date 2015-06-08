@@ -5,28 +5,44 @@ keyboardView.display();
 
 MAUI_View synthView;
 
-MultiOscillator mOsc => MultiFilter mFilt => ADSRPlus ampEnv => dac;
-LFO pitchLFO => blackhole;
-Step step => ADSRPlus filterCutoffEnv => blackhole;
+MultiOscillator mOsc => MultiFilter mFilt => EfAmp amp =>  dac;
+Step step=> AdsrPlus env => blackhole;
+step.next(1.0);
+env @=> amp.source;
+amp.init();
+Lfo lfo => blackhole;
 
-// oscillator row
+// row 1 
+// oscillator 
 mOsc.init();
-mOsc.initGUI(synthView, "Oscillator", 0, 0);
-pitchLFO.init();
-pitchLFO.initGUI(synthView, "Osc LFO", 0, 215);
-mOsc.addFreqMod(pitchLFO);
-// filter row
+MultiOscillatorGui mOscGui;
+mOscGui.init(mOsc, synthView, 0, 0);
+env @=> mOsc.freqEnv.source;
+lfo @=> mOsc.freqLfo.source;
+
+// filter
 mFilt.init();
-mFilt.initGUI(synthView, "Filter", 250, 0);
-filterCutoffEnv.init();
-filterCutoffEnv.initGUI(synthView, "Filter Env", 250, 175);
-mFilt.addFreqMod(filterCutoffEnv);
-// amplitude row
-ampEnv.init();
-ampEnv.initGUI(synthView, "Amp Env", 500, 0);
+MultiFilterGui mFiltGui;
+mFiltGui.init(mFilt, synthView, 0, 300);
+env @=> mFilt.freqEnv.source;
+0 => mFilt.freqEnv.isCentered;
+0 => mFilt.freqLfo.isCentered;
+lfo @=> mFilt.freqLfo.source;
+
+// row 2
+// env
+env.init();
+AdsrPlusGui envGui;
+envGui.init(env, synthView, 250, 0);
+
+// lfo
+lfo.init();
+LfoGui lfoGui;
+lfoGui.init(lfo, synthView, 250, 350);
+
 
 keyboardView.display();
-synthView.size(775, 550);
+synthView.size(775, 700);
 synthView.display();
 
 OscIn oscIn;
@@ -43,12 +59,10 @@ while(oscIn => now) {
     }
     else if(oscMsg.address == "/gate") {
       if(oscMsg.getInt(0)) {
-        ampEnv.keyOn();
-        filterCutoffEnv.keyOn();
+        env.keyOn();
       }
       else {
-        ampEnv.keyOff();
-        filterCutoffEnv.keyOff();
+        env.keyOff();
       }
     }
   }
