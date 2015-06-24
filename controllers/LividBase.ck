@@ -29,6 +29,19 @@ public class LividBase {
 	[[18, 26], [19, 27], [20, 28], [21, 29], 
 	 [22, 30], [23, 31], [24, 32], [25, 33]] @=> int buttonLeds[][];
 
+	fun int isButton(MidiMsg msg) {
+		return 0;
+	}	
+	
+	fun int isPad(MidiMsg msg) {
+		if(msg.data1 == 0x90) {
+			if(msg.data2 > 35 && msg.data2 < 68) {
+				return 1;
+			}
+		}
+		return 0;
+	}
+
 	fun void init() {
 		<<<"Initializing Livid Base...", "">>>;
 		if(midiIn.open(midiDeviceName))
