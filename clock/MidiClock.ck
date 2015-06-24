@@ -7,8 +7,10 @@ public class MidiClock extends Clock {
 
 	fun void init(string minName) {
 		swingAmount(0.2);
-		min.open(minName);
-		chout <= "Clock listening to midi port: " <= min.name() <= IO.nl();
+		if(min.open(minName)) 
+			<<<"Clock listening to", min.name()>>>;
+		else 
+			<<<"Clock couldn't open", minName>>>;
 		24 => ppq;
 		ppq / 4 => pps; // 16ths
 		spork ~ _main();
