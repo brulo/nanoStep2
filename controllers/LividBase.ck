@@ -29,18 +29,41 @@ public class LividBase {
 	[[18, 26], [19, 27], [20, 28], [21, 29], 
 	 [22, 30], [23, 31], [24, 32], [25, 33]] @=> int buttonLeds[][];
 
-	fun int isButton(MidiMsg msg) {
+	fun int isFader(MidiMsg msg) {
+		if(msg.data1 == 0xB0) {
+			if(msg.data2 > 0 && msg.data2 < 10) {
+				return msg.data2;
+			}
+		}
 		return 0;
 	}	
-	
+
 	fun int isPad(MidiMsg msg) {
 		if(msg.data1 == 0x90) {
 			if(msg.data2 > 35 && msg.data2 < 68) {
-				return 1;
+				return msg.data2 - 35;
 			}
 		}
 		return 0;
 	}
+
+	fun int isButton(MidiMsg msg) {
+		if(msg.data1 == 0x90) {
+			if(msg.data2 > 17 && msg.data2 < 26) {
+				return msg.data2 - 17;
+			}
+		}
+		return 0;
+	}	
+	
+	fun int isTouchButton(MidiMsg msg) {
+		if(msg.data1 == 0x90) {
+			if(msg.data2 > 9  && msg.data2 < 18) {
+				return msg.data2 - 9;
+			}
+		}
+		return 0;
+	}	
 
 	fun void init() {
 		<<<"Initializing Livid Base...", "">>>;
