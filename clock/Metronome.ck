@@ -5,7 +5,7 @@ public class Metronome {
 
 	fun void init(Clock theClock) {
 		theClock @=> clock;
-		gain.gain(0.7);
+		gain.gain(0.4);
 		metroAmpEnv.set(0.01::ms, 10::ms, 0, 0::ms);
 		spork ~ _main();
 	}
