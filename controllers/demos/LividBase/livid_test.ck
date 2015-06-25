@@ -41,24 +41,24 @@ fun void touchButtonLeds() {
 fun void padLedColors() {
 	while(true) {
 		for(int j; j < 8; j++) { 
-			base.setPadLed(0, j, "yellow");
+			base.setPadLed(j, 3, "yellow");
 			timeStep/2 => now;
 		}
 		for(int j; j < 8; j++) { 
-			base.setPadLed(1, j, "cyan");
+			base.setPadLed(j, 2, "cyan");
 			timeStep/2 => now;
 		}
 		for(int j; j < 8; j++) { 
-			base.setPadLed(2, j, "magenta");
+			base.setPadLed(j, 1, "magenta");
 			timeStep/2 => now;
 		}
 		for(int j; j < 8; j++) { 
-			base.setPadLed(3, j, "red");
+			base.setPadLed(j, 0, "red");
 			timeStep/2 => now;
 		}
 		for(int i; i < 4; i++) { 
 			for(int j; j < 8; j++) { 
-				base.setPadLed(i, j, "off");
+				base.setPadLed(j, i, "off");
 			}
 		}
 	}
