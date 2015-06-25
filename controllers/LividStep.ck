@@ -1,11 +1,16 @@
 LividBase base;
 InternalClock clock;
 PitchSequencer sequencer;
+MidiOut midiOut;
+Metronome metro;
+if(midiOut.open("IAC Driver Bus 1")) 
+	<<<midiOut.name(), "successfully opened for sequencer output">>>;
 
 base.init();
 clock.init();
 clock.start();
-sequencer.init(clock);
+sequencer.init(clock, midiOut);
+metro.init(clock);
 
 MidiMsg msg;
 while(base.midiIn => now) {
