@@ -7,7 +7,7 @@ public class InternalClock extends Clock {
 
 	fun void init() {
 		bpm(130.0);
-		swingAmount(0.2);
+		swingAmount(0.0);
 		stop();
 		spork ~ _main();
 	}
