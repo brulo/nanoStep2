@@ -5,7 +5,7 @@ public class PitchSequencer extends Sequencer {
   int ties[][];
   float pitches[][];  
   int _transpose, _octave, lastPitch;
-  30 => int gateT; 
+  50 => int gateT; 
 	MidiOut midiOut;
 
   fun void init(Clock clock, MidiOut theMidiOut) {
@@ -59,19 +59,21 @@ public class PitchSequencer extends Sequencer {
       if(accents[_patternPlaying][_currentStep]) 40 +=> _velocity;
       (pitches[_patternPlaying][_currentStep]+_transpose+(_octave*12))$int => int pit;
       if(ties[_patternPlaying][_currentStep]) {
-        <<<"cur note on", "">>>;
-        Utility.midiOut(0x90, pit, _velocity, midiOut);
-        1::ms => now;
-        <<<"last note off", "">>>;
-        Utility.midiOut(0x80, lastPitch, 10, midiOut);
+				if(pit != lastPitch) {
+					/* <<<"cur note on", "">>>; */
+					Utility.midiOut(0x90, pit, _velocity, midiOut);
+					2::ms => now;
+					/* <<<"last note off", "">>>; */
+					Utility.midiOut(0x80, lastPitch, 10, midiOut);
+				}
       }
       else { // gate
-        <<<"cur note on", "">>>;
+        /* <<<"cur note on", "">>>; */
         Utility.midiOut(0x90, pit, _velocity, midiOut);
         spork ~ gateOff(pit, _velocity) @=> Shred g; // timed cur note off
         if(pit != lastPitch) {
-          1::ms => now;
-          <<<"turn last pitch off", "">>>;
+          2::ms => now;
+          /* <<<"turn last pitch off", "">>>; */
           Utility.midiOut(0x80, lastPitch, _velocity, midiOut);
         }
       }
@@ -79,7 +81,7 @@ public class PitchSequencer extends Sequencer {
     }
     else {
       if(!ties[_patternPlaying][_currentStep] & lastPitch !=0) { 
-        <<< "0 => lastPitch", "">>>;
+        /* <<< "0 => lastPitch", "">>>; */
         Utility.midiOut(0x80, lastPitch, _velocity, midiOut);
         0 => lastPitch;
       }
@@ -89,7 +91,7 @@ public class PitchSequencer extends Sequencer {
 
   fun void gateOff(int p, int v) {
     gateT::ms => now;
-    <<<"gate off", "">>>;
+    /* <<<"gate off", "">>>; */
     Utility.midiOut(0x80, p, v, midiOut); 
   }
 }
