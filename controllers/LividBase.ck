@@ -40,6 +40,22 @@ public class LividBase {
 			<<<midiOut.name(), "output opened sucessfully!">>>;
 		else
 			<<<midiDeviceName, "output did not open sucessfully...">>>; 
+
+		allLedsOff();
+	}
+
+	fun void allLedsOff() {
+		for(int x; x < 8; x++) {
+			setButtonLed(x, "left", "off");
+			setButtonLed(x, "right", "off");
+			setTouchButtonLed(x, "top", "off");
+			setTouchButtonLed(x, "center", "off");
+			setFaderLed(x, 0);
+			for(int y; y < 4; y++) {
+				setPadLed(x, y, "off");
+			}
+		}
+			setFaderLed(8, 0);
 	}
 
 	fun int isFader(MidiMsg msg) {
