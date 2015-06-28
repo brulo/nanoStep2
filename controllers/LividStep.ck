@@ -3,12 +3,14 @@ InternalClock clock;
 PitchSequencer sequencer;
 MidiOut midiOut;
 Metronome metro;
-if(midiOut.open("IAC Driver Bus 1")) 
-<<<midiOut.name(), "successfully opened for sequencer output">>>;
+
+if(midiOut.open("UltraLite mk3 Hybrid MIDI Port")) 
+	<<<midiOut.name(), "successfully opened for sequencer output">>>;
 
 base.init();
 clock.init();
 clock.start();
+clock.swingAmount(0.2);
 clock.bpm(125);
 sequencer.init(clock, midiOut);
 /* metro.init(clock); */
@@ -24,6 +26,7 @@ while(base.midiIn => now) {
 				}
 				else
 					sequencer.stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
+				base.setFaderLed(msg);
 			}
 			else if(base.isPad(msg) > -1) {
 				base.getPadCoordinate(msg) @=> int pad[];

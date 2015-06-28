@@ -20,6 +20,7 @@ public class LividBase {
 
 	[1, 2, 3, 4, 5, 6, 7, 8, 9] @=> int faderLeds[];
 	[0, 10, 40, 50, 70, 90, 110, 127] @=> int faderLedPositions[];
+	int faderLedStates[9];
 
 	[36, 37, 38, 39, 40, 41, 42, 43,
 	 44, 45, 46, 47, 48, 49, 50, 51,
@@ -103,6 +104,16 @@ public class LividBase {
 
 	fun void setPadLed(int x, int y, string color) {
 		Utility.midiOut(0x90, padLeds[x + (y * 8)], ledColor[color] , midiOut);
+	}
+
+	fun void setFaderLed(MidiMsg msg) {
+		msg.data2 - 1 => int faderIndex;
+		Utility.remap(msg.data3, 0, 127, 0, 7) $ int => int faderPosition;
+		// is the led already at the right position?
+		if(faderLedStates[faderIndex] != faderPosition) {
+			setFaderLed(faderIndex, faderPosition);
+			faderPosition => faderLedStates[faderIndex];
+		}
 	}
 
 	fun void setFaderLed(int faderIndex, int faderPosition) { 
