@@ -16,6 +16,7 @@ public class PitchSequencer extends Sequencer {
 		new int[_numberOfPatterns][_numberOfSteps] @=> accents;
 		new int[_numberOfPatterns][_numberOfSteps] @=> ties;
 		new float[_numberOfPatterns][_numberOfSteps] @=> pitches;
+		spork ~ stepLengthLoop();
 	}
 
 	fun float pitch(int s) { return pitches[_patternEditing][s]; }
@@ -27,8 +28,13 @@ public class PitchSequencer extends Sequencer {
 	fun float stepLength() { return _stepLength; }
 	fun float stepLength(float sl) {
 		Utility.clamp(sl, 0.0, 1.0) => _stepLength;
-		Utility.remap(_stepLength, 0, 1, 10, 200)::ms => _stepDur;
 		return _stepLength;
+	}
+
+	fun void stepLengthLoop() {
+		while(samp => now) {
+			_stepLength * (clock.lastStepDur - 20::ms) + 20::ms => _stepDur;
+		}
 	}
 
 	fun int octave() { return _octave; }
