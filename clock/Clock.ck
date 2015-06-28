@@ -4,6 +4,7 @@ public class Clock {
 	0 => float _swingAmount;  // 0.0-1.0 amount of a step
 	Event step;
 	time lastStepTime;
+	dur lastStepDur;
 
 	fun void init() { }  // define in inheriting class
 
@@ -22,6 +23,7 @@ public class Clock {
 		if(isSwung) {
 			(now - lastStepTime) * _swingAmount => now;
 		}
+		now - lastStepTime => lastStepDur;
 		step.broadcast();
 		now => lastStepTime;
 	}
