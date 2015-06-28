@@ -9,17 +9,21 @@ if(midiOut.open("IAC Driver Bus 1"))
 base.init();
 clock.init();
 clock.start();
-clock.bpm(70);
+clock.bpm(125);
 sequencer.init(clock, midiOut);
-metro.init(clock);
+/* metro.init(clock); */
 
 MidiMsg msg;
 while(base.midiIn => now) {
 	while(base.midiIn.recv(msg)) {
 		if(msg.data3 > 0) {
 			if(base.isFader(msg) > -1) {
-				sequencer.pitch(base.isFader(msg), 
-						Utility.remap(msg.data3, 0, 127, 0, 7));
+				if(base.isFader(msg) < 8) {
+					sequencer.pitch(base.isFader(msg), 
+							Utility.remap(msg.data3, 0, 127, 0, 7));
+				}
+				else
+					sequencer.stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
 			}
 			else if(base.isPad(msg) > -1) {
 				base.getPadCoordinate(msg) @=> int pad[];
