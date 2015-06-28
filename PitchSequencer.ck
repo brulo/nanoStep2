@@ -1,97 +1,99 @@
 // A pitch sequencer that triggers midi on channel 1
 // by Bruce Lott, 2013-2014
 public class PitchSequencer extends Sequencer {
-  int accents[][];
-  int ties[][];
-  float pitches[][];  
-  int _transpose, _octave, lastPitch;
-  50 => int gateT; 
+	int accents[][];
+	int ties[][];
+	float pitches[][];  
+	int _transpose, _octave, _lastNote;
+	0.5 => float _stepLength;  // 0.0-1.0 of stepDur
+	100::ms => dur _stepDur;
 	MidiOut midiOut;
 
-  fun void init(Clock clock, MidiOut theMidiOut) {
-    _init(clock);
+	fun void init(Clock clock, MidiOut theMidiOut) {
+		_init(clock);
 		theMidiOut @=> midiOut;
-    4 => _octave;
-    new int[_numberOfPatterns][_numberOfSteps] @=> accents;
-    new int[_numberOfPatterns][_numberOfSteps] @=> ties;
-    new float[_numberOfPatterns][_numberOfSteps] @=> pitches;
-  }
+		4 => _octave;
+		new int[_numberOfPatterns][_numberOfSteps] @=> accents;
+		new int[_numberOfPatterns][_numberOfSteps] @=> ties;
+		new float[_numberOfPatterns][_numberOfSteps] @=> pitches;
+	}
 
-  fun float pitch(int s) { return pitches[_patternEditing][s]; }
-  fun float pitch(int s, float p) { 
+	fun float pitch(int s) { return pitches[_patternEditing][s]; }
+	fun float pitch(int s, float p) { 
 		p => pitches[_patternEditing][s]; 
 		return pitches[_patternEditing][s]; 
 	}
 
-  fun int gateTime() { return gateT; }
-  fun int gateTime(int gt) {
-    gt => gateT;
-    return gateT;
-  }
+	fun float stepLength() { return _stepLength; }
+	fun float stepLength(float sl) {
+		Utility.clamp(sl, 0.0, 1.0) => _stepLength;
+		Utility.remap(_stepLength, 0, 1, 10, 200)::ms => _stepDur;
+		return _stepLength;
+	}
 
-  fun int octave() { return _octave; }
-  fun int octave(int o) {
-    o => _octave;
-    return _octave;
-  }
+	fun int octave() { return _octave; }
+	fun int octave(int o) {
+		o => _octave;
+		return _octave;
+	}
 
-  fun int accent(int s) { return accents[_patternEditing][s]; }
-  fun int accent(int s, int t) { 
+	fun int accent(int s) { return accents[_patternEditing][s]; }
+	fun int accent(int s, int t) { 
 		t => accents[_patternEditing][s];
 		return accents[_patternEditing][s];
 	}
 
-  fun int tie(int s) { return ties[_patternEditing][s]; }
-  fun int tie(int s, int t) { 
+	fun int tie(int s) { return ties[_patternEditing][s]; }
+	fun int tie(int s, int t) { 
 		t => ties[_patternEditing][s];
 		return ties[_patternEditing][s];
 	}
-  fun int transpose() { return _transpose; }
-  fun int transpose(int t) {
-    t => _transpose;
-    return _transpose;
-  }
+	fun int transpose() { return _transpose; }
+	fun int transpose(int t) {
+		t => _transpose;
+		return _transpose;
+	}
 
-  fun void doStep() {
+	fun void doStep() {
 		int _velocity;
-    if(_triggers[_patternPlaying][_currentStep]>0) {
-      80 => _velocity;
-      if(accents[_patternPlaying][_currentStep]) 40 +=> _velocity;
-      (pitches[_patternPlaying][_currentStep]+_transpose+(_octave*12))$int => int pit;
-      if(ties[_patternPlaying][_currentStep]) {
-				if(pit != lastPitch) {
-					/* <<<"cur note on", "">>>; */
-					Utility.midiOut(0x90, pit, _velocity, midiOut);
+		if(_triggers[_patternPlaying][_currentStep]>0) {
+			80 => _velocity;
+			if(accents[_patternPlaying][_currentStep]) 40 +=> _velocity;
+			(pitches[_patternPlaying][_currentStep] + _transpose + (_octave * 12)) $ int => int currentNote;
+			if(ties[_patternPlaying][_currentStep]) {
+				if(currentNote != _lastNote) {
+					/* <<<"currrent note on", "">>>; */
+					Utility.midiOut(0x90, currentNote, _velocity, midiOut);
 					2::ms => now;
 					/* <<<"last note off", "">>>; */
-					Utility.midiOut(0x80, lastPitch, 10, midiOut);
+					Utility.midiOut(0x80, _lastNote, 10, midiOut);
 				}
-      }
-      else { // gate
-        /* <<<"cur note on", "">>>; */
-        Utility.midiOut(0x90, pit, _velocity, midiOut);
-        spork ~ gateOff(pit, _velocity) @=> Shred g; // timed cur note off
-        if(pit != lastPitch) {
-          2::ms => now;
-          /* <<<"turn last pitch off", "">>>; */
-          Utility.midiOut(0x80, lastPitch, _velocity, midiOut);
-        }
-      }
-      pit => lastPitch;
-    }
-    else {
-      if(!ties[_patternPlaying][_currentStep] & lastPitch !=0) { 
-        /* <<< "0 => lastPitch", "">>>; */
-        Utility.midiOut(0x80, lastPitch, _velocity, midiOut);
-        0 => lastPitch;
-      }
-    }
-  }
-	
+			}
+			else { // gate
+				/* <<<"current note on", "">>>; */
+				Utility.midiOut(0x90, currentNote, _velocity, midiOut);
+				spork ~ noteOffAfterStepDur(currentNote, _velocity);
+				if(currentNote != _lastNote) {
+					2::ms => now;
+					/* <<<"last note off", "">>>; */
+					Utility.midiOut(0x80, _lastNote, _velocity, midiOut);
+				}
+			}
+			currentNote => _lastNote;
+		}
+		else {
+			if(!ties[_patternPlaying][_currentStep] & _lastNote !=0) { 
+				/* <<< "0 => _lastNote", "">>>; */
+				Utility.midiOut(0x80, _lastNote, _velocity, midiOut);
+				0 => _lastNote;
+			}
+		}
+	}
 
-  fun void gateOff(int p, int v) {
-    gateT::ms => now;
-    /* <<<"gate off", "">>>; */
-    Utility.midiOut(0x80, p, v, midiOut); 
-  }
+
+	fun void noteOffAfterStepDur(int p, int v) {
+		_stepDur => now;
+		/* <<<"note off", "">>>; */
+		Utility.midiOut(0x80, p, v, midiOut); 
+	}
 }
