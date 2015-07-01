@@ -15,6 +15,15 @@ clock.bpm(125);
 sequencer.init(clock, midiOut);
 /* metro.init(clock); */
 
+"red" => string triggerLedColor;
+"green" => string tieLedColor;
+"blue" => string accentLedColor;
+3 => int triggerLedRow;
+2 => int tieLedRow;
+1 => int accentLedRow;
+
+base.setButtonLed(0, "left", "blue");
+base.setButtonLed(0, "right", "red");
 MidiMsg msg;
 while(base.midiIn => now) {
 	while(base.midiIn.recv(msg)) {
@@ -28,38 +37,78 @@ while(base.midiIn => now) {
 					sequencer.stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
 				base.setFaderLed(msg);
 			}
+			else if(base.isButton(msg) > -1) {
+				base.isButton(msg) => int buttonIndex;
+				// pattern playing/editing
+				if(buttonIndex < 4) {  // change pattern being edited
+					if(sequencer.patternEditing() != buttonIndex) {
+						base.setButtonLed(sequencer.patternEditing(), "left", "off");
+						base.setButtonLed(buttonIndex, "left", "blue");
+						sequencer.patternEditing(buttonIndex);
+
+						for(0 => int x; x < 8; x++) {
+							base.setFaderLed(x, sequencer.pitch(x) $ int);
+
+							if(sequencer.trigger(x) > 0.0)
+								base.setPadLed(x, triggerLedRow, triggerLedColor);
+							else
+								base.setPadLed(x, triggerLedRow, "off");
+
+							if(sequencer.tie(x))
+								base.setPadLed(x, tieLedRow, tieLedColor);
+							else
+								base.setPadLed(x, tieLedRow, "off");
+							
+							if(sequencer.accent(x))
+								base.setPadLed(x, accentLedRow, accentLedColor);
+							else
+								base.setPadLed(x, accentLedRow, "off");
+						}
+					}
+					else { 	// change pattern being played
+						base.setButtonLed(sequencer.patternPlaying(), "right", "off");
+						base.setButtonLed(buttonIndex, "right", "red");
+						sequencer.patternPlaying(buttonIndex);
+					}
+				}
+				// sequencer paramater being edited
+			}
 			else if(base.isPad(msg) > -1) {
 				base.getPadCoordinate(msg) @=> int pad[];
 				pad[0] => int x;
 				pad[1] => int y;
-				if(y == 3) {  // top row
+
+				// trigger
+				if(y == triggerLedRow) { 
 					if(sequencer.trigger(x) > 0.0) {
 						sequencer.trigger(x, 0.0);
 						base.setPadLed(x, y, "off");
 					}
 					else {
 						sequencer.trigger(x, 1.0);
-						base.setPadLed(x, y, "red");
+						base.setPadLed(x, y, triggerLedColor);
 					}
 				}
-				else if(y == 2) { 
+				// tie
+				else if(y == tieLedRow) { 
 					if(sequencer.tie(x)) {
 						sequencer.tie(x, 0);
 						base.setPadLed(x, y, "off");
 					}
 					else {
 						sequencer.tie(x, 1);
-						base.setPadLed(x, y, "green");
+						base.setPadLed(x, y, tieLedColor);
 					}
 				}
-				else if(y == 1) { 
+				// accent
+				else if(y == accentLedRow) { 
 					if(sequencer.accent(x)) {
 						sequencer.accent(x, 0);
 						base.setPadLed(x, y, "off");
 					}
 					else {
 						sequencer.accent(x, 1);
-						base.setPadLed(x, y, "blue");
+						base.setPadLed(x, y, accentLedColor);
 					}
 				}
 			}
