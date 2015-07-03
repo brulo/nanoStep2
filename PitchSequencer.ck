@@ -8,6 +8,7 @@ public class PitchSequencer extends Sequencer {
 	0.5 => float _stepLength;  // 0.0-1.0 of stepDur
 	100::ms => dur _stepDur;
 	MidiOut midiOut;
+	0 => int midiChannel;
 
 	fun void init(Clock clock, MidiOut theMidiOut) {
 		_init(clock);
@@ -69,20 +70,20 @@ public class PitchSequencer extends Sequencer {
 			if(ties[_patternPlaying][_currentStep]) {
 				if(currentNote != _lastNote) {
 					/* <<<"currrent note on", "">>>; */
-					Utility.midiOut(0x90, currentNote, _velocity, midiOut);
+					Utility.midiOut(0x90 + midiChannel, currentNote, _velocity, midiOut);
 					2::ms => now;
 					/* <<<"last note off", "">>>; */
-					Utility.midiOut(0x80, _lastNote, 10, midiOut);
+					Utility.midiOut(0x80 + midiChannel, _lastNote, 10, midiOut);
 				}
 			}
 			else { // gate
 				/* <<<"current note on", "">>>; */
-				Utility.midiOut(0x90, currentNote, _velocity, midiOut);
+				Utility.midiOut(0x90 + midiChannel, currentNote, _velocity, midiOut);
 				spork ~ noteOffAfterStepDur(currentNote, _velocity);
 				if(currentNote != _lastNote) {
 					2::ms => now;
 					/* <<<"last note off", "">>>; */
-					Utility.midiOut(0x80, _lastNote, _velocity, midiOut);
+					Utility.midiOut(0x80 + midiChannel, _lastNote, _velocity, midiOut);
 				}
 			}
 			currentNote => _lastNote;
@@ -90,7 +91,7 @@ public class PitchSequencer extends Sequencer {
 		else {
 			if(!ties[_patternPlaying][_currentStep] & _lastNote !=0) { 
 				/* <<< "0 => _lastNote", "">>>; */
-				Utility.midiOut(0x80, _lastNote, _velocity, midiOut);
+				Utility.midiOut(0x80 + midiChannel, _lastNote, _velocity, midiOut);
 				0 => _lastNote;
 			}
 		}
@@ -100,6 +101,6 @@ public class PitchSequencer extends Sequencer {
 	fun void noteOffAfterStepDur(int p, int v) {
 		_stepDur => now;
 		/* <<<"note off", "">>>; */
-		Utility.midiOut(0x80, p, v, midiOut); 
+		Utility.midiOut(0x80 + midiChannel, p, v, midiOut); 
 	}
 }
