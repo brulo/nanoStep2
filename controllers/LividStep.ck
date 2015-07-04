@@ -1,6 +1,6 @@
 LividBase base;
 InternalClock clock;
-PitchSequencer sequencer;
+PitchSequencer sequencers[2];
 MidiOut midiOut;
 Metronome metro;
 
@@ -8,28 +8,37 @@ Metronome metro;
 "green" => string tieLedColor;
 "blue" => string accentLedColor;
 "red" => string pageSelectLedColor;
+"magenta" => string sequencerSelectLedColor;
+"blue" => string patternEditingLedColor;
+"red" => string patternPlayingLedColor;
 
 3 => int triggerLedRow;
 2 => int tieLedRow;
 1 => int accentLedRow;
+0 => int sequencerIndex;
 0 => int pageIndex;
 2 => int maxPages;
 
 /* if(midiOut.open("UltraLite mk3 Hybrid MIDI Port")) */ 
 if(midiOut.open("IAC Driver Bus 1"))
-	<<<midiOut.name(), "successfully opened for sequencer output">>>;
+	<<<midiOut.name(), "successfully opened for sequencers[sequencerIndex] output">>>;
 
 base.init();
 clock.init();
 clock.start();
 clock.swingAmount(0.2);
 clock.bpm(125);
-sequencer.init(clock, midiOut);
-sequencer.patternLength(32);
+for(int i; i < sequencers.cap(); i++) {
+	sequencers[i].init(clock, midiOut);
+	sequencers[i].patternLength(32);
+	i => sequencers[i].midiChannel;
+}
 /* metro.init(clock); */
 
 base.setButtonLed(0, "left", "blue");
 base.setButtonLed(0, "right", "red");
+base.setButtonLed(4, "left", "magenta");
+base.setButtonLed(4, "right", "magenta");
 base.setTouchButtonLed(pageIndex, "center", 
 		pageSelectLedColor);
 
@@ -46,28 +55,31 @@ while(base.midiIn => now) {
 			if(base.isFader(msg) > -1) {
 				base.isFader(msg) => int faderIdx;
 				if(faderIdx < 8) {
-					sequencer.pitch(faderIdx + (pageIndex * 8), 
+					sequencers[sequencerIndex].pitch(faderIdx + (pageIndex * 8), 
 							Utility.remap(msg.data3, 0, 127, 0, 7));
 				}
 				else
-					sequencer.stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
+					sequencers[sequencerIndex].stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
 				base.setFaderLed(msg);
 			}
 			else if(base.isButton(msg) > -1) {
 				base.isButton(msg) => int buttonIndex;
 				// pattern playing/editing
 				if(buttonIndex < 4) {  // change pattern being edited
-					if(sequencer.patternEditing() != buttonIndex) {
-						base.setButtonLed(sequencer.patternEditing(), "left", "off");
-						base.setButtonLed(buttonIndex, "left", "blue");
-						sequencer.patternEditing(buttonIndex);
+					if(sequencers[sequencerIndex].patternEditing() != buttonIndex) {
+						base.setButtonLed(sequencers[sequencerIndex].patternEditing(), "left", "off");
+						base.setButtonLed(buttonIndex, "left", patternEditingLedColor);
+						sequencers[sequencerIndex].patternEditing(buttonIndex);
 						updateStepLeds();
 					}
 					else { 	// change pattern being played
-						base.setButtonLed(sequencer.patternPlaying(), "right", "off");
-						base.setButtonLed(buttonIndex, "right", "red");
-						sequencer.patternPlaying(buttonIndex);
+						base.setButtonLed(sequencers[sequencerIndex].patternPlaying(), "right", "off");
+						base.setButtonLed(buttonIndex, "right", patternPlayingLedColor);
+						sequencers[sequencerIndex].patternPlaying(buttonIndex);
 					}
+				}
+				else if(buttonIndex < 6) {
+					changeSequencer(buttonIndex - 4);
 				}
 			}
 			else if(base.isPad(msg) > -1) {
@@ -78,34 +90,34 @@ while(base.midiIn => now) {
 
 				// trigger
 				if(y == triggerLedRow) { 
-					if(sequencer.trigger(stepIndex) > 0.0) {
-						sequencer.trigger(stepIndex, 0.0);
+					if(sequencers[sequencerIndex].trigger(stepIndex) > 0.0) {
+						sequencers[sequencerIndex].trigger(stepIndex, 0.0);
 						base.setPadLed(x, y, "off");
 					}
 					else {
-						sequencer.trigger(stepIndex, 1.0);
+						sequencers[sequencerIndex].trigger(stepIndex, 1.0);
 						base.setPadLed(x, y, triggerLedColor);
 					}
 				}
 				// tie
 				else if(y == tieLedRow) { 
-					if(sequencer.tie(stepIndex)) {
-						sequencer.tie(stepIndex, 0);
+					if(sequencers[sequencerIndex].tie(stepIndex)) {
+						sequencers[sequencerIndex].tie(stepIndex, 0);
 						base.setPadLed(x, y, "off");
 					}
 					else {
-						sequencer.tie(stepIndex, 1);
+						sequencers[sequencerIndex].tie(stepIndex, 1);
 						base.setPadLed(x, y, tieLedColor);
 					}
 				}
 				// accent
 				else if(y == accentLedRow) { 
-					if(sequencer.accent(stepIndex)) {
-						sequencer.accent(stepIndex, 0);
+					if(sequencers[sequencerIndex].accent(stepIndex)) {
+						sequencers[sequencerIndex].accent(stepIndex, 0);
 						base.setPadLed(x, y, "off");
 					}
 					else {
-						sequencer.accent(stepIndex, 1);
+						sequencers[sequencerIndex].accent(stepIndex, 1);
 						base.setPadLed(x, y, accentLedColor);
 					}
 				}
@@ -124,22 +136,39 @@ fun void changeStepPage(int newPageIndex) {
 	}
 }
 
+fun void changeSequencer(int newSequencerIndex) {
+	if(newSequencerIndex != sequencerIndex) {
+		base.setButtonLed(sequencerIndex + 4, "left", "off");
+		base.setButtonLed(sequencerIndex + 4, "right", "off");
+		base.setButtonLed(sequencers[sequencerIndex].patternEditing(),"left", "off");
+		base.setButtonLed(sequencers[sequencerIndex].patternPlaying(), "right", "off");
+		newSequencerIndex => sequencerIndex;
+		base.setButtonLed(sequencerIndex + 4, "left", sequencerSelectLedColor);
+		base.setButtonLed(sequencerIndex + 4, "right", sequencerSelectLedColor);
+
+		base.setButtonLed(sequencers[sequencerIndex].patternEditing(),"left", patternEditingLedColor);
+		base.setButtonLed(sequencers[sequencerIndex].patternPlaying(), "right", patternPlayingLedColor);
+
+		updateStepLeds();
+	}
+}
+
 fun void updateStepLeds() {
 	for(0 => int x; x < 8; x++) {
 		x + (pageIndex * 8) => int stepIndex;
-		base.setFaderLed(x, sequencer.pitch(stepIndex) $ int);
+		base.setFaderLed(x, sequencers[sequencerIndex].pitch(stepIndex) $ int);
 
-		if(sequencer.trigger(stepIndex) > 0.0)
+		if(sequencers[sequencerIndex].trigger(stepIndex) > 0.0)
 			base.setPadLed(x, triggerLedRow, triggerLedColor);
 		else
 			base.setPadLed(x, triggerLedRow, "off");
 
-		if(sequencer.tie(stepIndex))
+		if(sequencers[sequencerIndex].tie(stepIndex))
 			base.setPadLed(x, tieLedRow, tieLedColor);
 		else
 			base.setPadLed(x, tieLedRow, "off");
 
-		if(sequencer.accent(stepIndex))
+		if(sequencers[sequencerIndex].accent(stepIndex))
 			base.setPadLed(x, accentLedRow, accentLedColor);
 		else
 			base.setPadLed(x, accentLedRow, "off");
