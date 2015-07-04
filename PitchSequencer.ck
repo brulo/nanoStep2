@@ -1,6 +1,7 @@
 // A pitch sequencer that triggers midi on channel 1
 // by Bruce Lott, 2013-2014
 public class PitchSequencer extends Sequencer {
+	ModeQuantizer modeQuantizer;
 	int accents[][];
 	int ties[][];
 	float pitches[][];  
@@ -66,7 +67,8 @@ public class PitchSequencer extends Sequencer {
 		if(_triggers[_patternPlaying][_currentStep]>0) {
 			80 => _velocity;
 			if(accents[_patternPlaying][_currentStep]) 40 +=> _velocity;
-			(pitches[_patternPlaying][_currentStep] + _transpose + (_octave * 12)) $ int => int currentNote;
+			modeQuantizer.quantize(pitches[_patternPlaying][_currentStep] $ int) => int currentNote;
+			(currentNote + _transpose + (_octave * 12)) $ int => currentNote;
 			if(ties[_patternPlaying][_currentStep]) {
 				if(currentNote != _lastNote) {
 					/* <<<"currrent note on", "">>>; */

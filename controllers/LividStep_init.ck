@@ -1,4 +1,5 @@
 Machine.add(me.dir(-1) + "Utility.ck");
+Machine.add(me.dir(-1) + "ModeQuantizer.ck");
 Machine.add(me.dir(-1) + "/clock/Clock.ck");
 Machine.add(me.dir(-1) + "/clock/InternalClock.ck");
 Machine.add(me.dir(-1) + "/clock/Metronome.ck");

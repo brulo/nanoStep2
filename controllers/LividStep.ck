@@ -4,6 +4,17 @@ PitchSequencer sequencer;
 MidiOut midiOut;
 Metronome metro;
 
+"red" => string triggerLedColor;
+"green" => string tieLedColor;
+"blue" => string accentLedColor;
+"red" => string pageSelectLedColor;
+
+3 => int triggerLedRow;
+2 => int tieLedRow;
+1 => int accentLedRow;
+0 => int pageIndex;
+2 => int maxPages;
+
 /* if(midiOut.open("UltraLite mk3 Hybrid MIDI Port")) */ 
 if(midiOut.open("IAC Driver Bus 1"))
 	<<<midiOut.name(), "successfully opened for sequencer output">>>;
@@ -17,53 +28,10 @@ sequencer.init(clock, midiOut);
 sequencer.patternLength(32);
 /* metro.init(clock); */
 
-"red" => string triggerLedColor;
-"green" => string tieLedColor;
-"blue" => string accentLedColor;
-"red" => string pageSelectLedColor;
-3 => int triggerLedRow;
-2 => int tieLedRow;
-1 => int accentLedRow;
-0 => int pageIndex;
-2 => int maxPages;
 base.setButtonLed(0, "left", "blue");
 base.setButtonLed(0, "right", "red");
 base.setTouchButtonLed(pageIndex, "center", 
 		pageSelectLedColor);
-
-fun void changeStepPage(int newPageIndex) {
-	Utility.clampi(newPageIndex, 
-			0, maxPages) => newPageIndex;
-	if(newPageIndex != pageIndex) {
-		base.setTouchButtonLed(pageIndex, "center", "off");
-		newPageIndex => pageIndex; 
-		base.setTouchButtonLed(pageIndex, "center", 
-				pageSelectLedColor);
-		updateStepLeds();
-	}
-}
-
-fun void updateStepLeds() {
-	for(0 => int x; x < 8; x++) {
-		x + (pageIndex * 8) => int stepIndex;
-		base.setFaderLed(x, sequencer.pitch(stepIndex) $ int);
-
-		if(sequencer.trigger(stepIndex) > 0.0)
-			base.setPadLed(x, triggerLedRow, triggerLedColor);
-		else
-			base.setPadLed(x, triggerLedRow, "off");
-
-		if(sequencer.tie(stepIndex))
-			base.setPadLed(x, tieLedRow, tieLedColor);
-		else
-			base.setPadLed(x, tieLedRow, "off");
-
-		if(sequencer.accent(stepIndex))
-			base.setPadLed(x, accentLedRow, accentLedColor);
-		else
-			base.setPadLed(x, accentLedRow, "off");
-	}
-}
 
 MidiMsg msg;
 while(base.midiIn => now) {
@@ -101,7 +69,6 @@ while(base.midiIn => now) {
 						sequencer.patternPlaying(buttonIndex);
 					}
 				}
-				// sequencer paramater being edited
 			}
 			else if(base.isPad(msg) > -1) {
 				base.getPadCoordinate(msg) @=> int pad[];
@@ -144,5 +111,37 @@ while(base.midiIn => now) {
 				}
 			}
 		}
+	}
+}
+
+fun void changeStepPage(int newPageIndex) {
+	Utility.clampi(newPageIndex, 0, maxPages) => newPageIndex;
+	if(newPageIndex != pageIndex) {
+		base.setTouchButtonLed(pageIndex, "center", "off");
+		newPageIndex => pageIndex; 
+		base.setTouchButtonLed(pageIndex, "center", pageSelectLedColor);
+		updateStepLeds();
+	}
+}
+
+fun void updateStepLeds() {
+	for(0 => int x; x < 8; x++) {
+		x + (pageIndex * 8) => int stepIndex;
+		base.setFaderLed(x, sequencer.pitch(stepIndex) $ int);
+
+		if(sequencer.trigger(stepIndex) > 0.0)
+			base.setPadLed(x, triggerLedRow, triggerLedColor);
+		else
+			base.setPadLed(x, triggerLedRow, "off");
+
+		if(sequencer.tie(stepIndex))
+			base.setPadLed(x, tieLedRow, tieLedColor);
+		else
+			base.setPadLed(x, tieLedRow, "off");
+
+		if(sequencer.accent(stepIndex))
+			base.setPadLed(x, accentLedRow, accentLedColor);
+		else
+			base.setPadLed(x, accentLedRow, "off");
 	}
 }
