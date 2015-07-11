@@ -19,9 +19,12 @@ Metronome metro;
 0 => int pageIndex;
 2 => int maxPages;
 
+-1 => int touchButtonHeld;
+0 => int patternLengthChanged;
+
 /* if(midiOut.open("UltraLite mk3 Hybrid MIDI Port")) */ 
 if(midiOut.open("IAC Driver Bus 1"))
-	<<<midiOut.name(), "successfully opened for sequencers[sequencerIndex] output">>>;
+<<<midiOut.name(), "successfully opened for sequencers[sequencerIndex] output">>>;
 
 base.init();
 clock.init();
@@ -45,22 +48,60 @@ base.setTouchButtonLed(pageIndex, "center",
 MidiMsg msg;
 while(base.midiIn => now) {
 	while(base.midiIn.recv(msg)) {
-		if(msg.data3 > 0) {
+		// pattern length, step page view
+
+
+		if(base.isTouchButton(msg) > -1) {
+			base.isTouchButton(msg) => int buttonIdx;
+			if(msg.data3 > 0) {  // button down
+				if(touchButtonHeld < 0) {
+					buttonIdx => touchButtonHeld;
+					0 => patternLengthChanged;
+					<<<"anchor button:", touchButtonHeld>>>;
+				}
+				else {
+					1 => patternLengthChanged;
+					if(buttonIdx - touchButtonHeld > 0) {
+						<<<"pattern length changed to:", (buttonIdx - touchButtonHeld) * 8>>>;
+						for(int i; i < 8; i++)
+							base.setTouchButtonLed(i, "top", "off");
+						for(touchButtonHeld => int i; i <= buttonIdx; i++)
+							base.setTouchButtonLed(i, "top", "green");
+					}
+				}
+			}
+			else {              // button up
+				if(buttonIdx == touchButtonHeld) {
+					if(!patternLengthChanged) { 
+						<<<"change step page", "">>>;
+						for(int i; i < 8; i++)
+							base.setTouchButtonLed(i, "center", "off");
+						base.setTouchButtonLed(buttonIdx, "center", "red");
+					}
+					-1 => touchButtonHeld;
+				}
+			}
+		}
+
+		// faders
+		else if(base.isFader(msg) > -1) {
+			base.isFader(msg) => int faderIdx;
+			if(faderIdx < 8) {
+				sequencers[sequencerIndex].pitch(faderIdx + (pageIndex * 8), 
+						Utility.remap(msg.data3, 0, 127, 0, 7));
+			}
+			else {
+				sequencers[sequencerIndex].stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
+			}
+			base.setFaderLed(msg);
+		}
+
+		else if(msg.data3 > 0) {
 			if(base.isTouchButton(msg) > -1) {
 				base.isTouchButton(msg) => int buttonIdx;
 				if(buttonIdx < 2) {
 					changeStepPage(buttonIdx);
 				}
-			}
-			if(base.isFader(msg) > -1) {
-				base.isFader(msg) => int faderIdx;
-				if(faderIdx < 8) {
-					sequencers[sequencerIndex].pitch(faderIdx + (pageIndex * 8), 
-							Utility.remap(msg.data3, 0, 127, 0, 7));
-				}
-				else
-					sequencers[sequencerIndex].stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
-				base.setFaderLed(msg);
 			}
 			else if(base.isButton(msg) > -1) {
 				base.isButton(msg) => int buttonIndex;
