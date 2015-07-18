@@ -14,7 +14,7 @@ public class Sequencer {
 		theClock @=> clock;
 		0  => _currentStep => _patternPlaying => _patternEditing;
 		8  => _patternLength => _numberOfPatterns;
-		16 => _numberOfSteps;
+		64 => _numberOfSteps;
 		new float[_numberOfPatterns][_numberOfSteps] @=> _triggers;
 		clearAllTriggers();
 		spork ~ clockLoop() @=> clockShred;

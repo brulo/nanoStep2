@@ -17,7 +17,7 @@ Metronome metro;
 1 => int accentLedRow;
 0 => int sequencerIndex;
 0 => int pageIndex;
-2 => int maxPages;
+8 => int maxPages;
 
 -1 => int touchButtonHeld;
 0 => int patternLengthChanged;
@@ -73,7 +73,8 @@ while(base.midiIn => now) {
 			else {              // button up
 				if(buttonIdx == touchButtonHeld) {
 					if(!patternLengthChanged) { 
-						<<<"change step page", "">>>;
+						<<<"change step page", buttonIdx>>>;
+						changeStepPage(buttonIdx);
 						for(int i; i < 8; i++)
 							base.setTouchButtonLed(i, "center", "off");
 						base.setTouchButtonLed(buttonIdx, "center", "red");
