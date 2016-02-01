@@ -13,7 +13,7 @@ public class InternalClock extends Clock {
 	}
 
 	fun void _main() {
-	time lastPulse;  // unswung steps
+		time lastPulse;  // unswung steps
 		while(true) {
 			if(isPlaying) { 
 				if(now - lastPulse >= _stepDur) {

@@ -1,14 +1,21 @@
 8 => int numSteps;
 MAUI_Slider pitchSliders[numSteps];
 MAUI_Button triggerButtons[numSteps];
-Clock clock;
+InternalClock clock;
 PitchSequencer pitchSeq;
-MAUI_View view;
-
 int x, y;
+MAUI_View view;
+MidiOut midiOut;
+"IAC Driver IAC Bus 1" => string midiOutPort;
+
+if(midiOut.open(midiOutPort))
+  <<<midiOut.name(), "input opened sucessfully!">>>;
+else
+  <<<midiOutPort, "input did not open sucessfully...">>>;
+
 clock.init();
-pitchSeq.init();
-pitchSeq.patternLength(numSteps);
+midiOut.open(midiOutPort);
+pitchSeq.init(clock, midiOut);
 
 for(0 => int i; i < numSteps; i++) {
   pitchSliders[i].position(x, y + i*50);
@@ -22,6 +29,7 @@ for(0 => int i; i < numSteps; i++) {
 } 
 
 view.display();
+clock.start();
 20::second => now;
 
 fun void triggerButtonLoop(int step) {
@@ -31,5 +39,5 @@ fun void triggerButtonLoop(int step) {
 
 fun void pitchSliderLoop(int step) {
   while(pitchSliders[step] => now)
-    pitchSeq.setPitch(step, pitchSliders[step].value()*numSteps);
+    pitchSeq.pitch(step, pitchSliders[step].value()*numSteps);
 }

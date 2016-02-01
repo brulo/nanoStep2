@@ -1,34 +1,36 @@
-// Sequencer.ck
 // Sequencer base class to extend from
-// Uses local OSC 
-// by Bruce Lott, 2013
+// by Bruce Lott, 2013-2015
 
 public class Sequencer {
-	int _patternLength, _numberOfSteps, _currentStep;
+	int _numberOfSteps, _currentStep, _patternLength;
 	int _numberOfPatterns, _patternPlaying, _patternEditing;
 	float _triggers[][]; // [pattern][step]
 	Clock clock;
 	Shred clockShred;
+	int _firstStep, _lastStep; // controls pattern length 
 
 	fun void _init(Clock theClock) {
 		theClock @=> clock;
-		0  => _currentStep => _patternPlaying => _patternEditing;
-		8  => _patternLength => _numberOfPatterns;
+		0  => _currentStep => _patternPlaying => _patternEditing => _firstStep;
+		8  => _numberOfPatterns;
 		64 => _numberOfSteps;
 		new float[_numberOfPatterns][_numberOfSteps] @=> _triggers;
+		lastStep(7);
 		clearAllTriggers();
 		spork ~ clockLoop() @=> clockShred;
 	}  
 
 	fun void clockLoop() { 
 		while(clock.step => now) {
-			clock.currentStep % _patternLength => _currentStep;
+			((clock.currentStep % _numberOfSteps) + _firstStep) % _patternLength => _currentStep;
 			doStep();
 		}
 	}
 
-	fun void doStep() { } // what happens when arriving at a new step
-	// override this in child class     
+	fun void doStep() {  
+		// what happens when arriving at a new step.
+		// override this in child class     
+	}
 
 	fun float trigger(int step) { return _triggers[_patternEditing][step]; }
 	fun float trigger(int step, float val) {
@@ -70,9 +72,26 @@ public class Sequencer {
 		return _patternEditing;
 	}
 
-	fun int patternLength() { return _patternLength; }
-	fun int patternLength(int pl) {
-		Utility.clampi(pl, 0, _numberOfSteps) => _patternLength;
+	fun int patternLength() { return _patternLength; } 
+
+	fun int _calcPatternLength() {
+		_lastStep - _firstStep + 1 => _patternLength;
 		return _patternLength;
 	}
+
+	fun int firstStep() { return _firstStep; }
+	fun int firstStep(int step) {
+		Utility.clampi(step, 0, _lastStep) => _firstStep;
+		_calcPatternLength();
+		return _firstStep;
+	}
+
+	fun int lastStep() { return _lastStep; } 
+	fun int lastStep(int step) {
+		Utility.clampi(step, _firstStep, 
+			_numberOfSteps - 1) => _lastStep;
+		_calcPatternLength();
+		return _lastStep;
+	}
+
 }
