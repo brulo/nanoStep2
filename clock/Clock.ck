@@ -25,7 +25,7 @@ public class Clock {
 		}
 		now - lastStepTime => lastStepDur;
 		step.broadcast();
-		<<<"| Clock | = _broadcastStep(", currentStep, ")">>>;
+		// <<<"| Clock | - _broadcastStep(", currentStep, ")">>>;
 		now => lastStepTime;
 	}
 

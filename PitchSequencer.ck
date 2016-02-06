@@ -62,28 +62,49 @@ public class PitchSequencer extends Sequencer {
 		return _transpose;
 	}
 
+	fun int getVelocity() {
+		if(accents[_patternPlaying][_currentStep]) {
+			return 127;
+		}
+		else {
+			return 80;
+		}
+	}
+	
+	fun int getPitch() {
+		// modeQuantizer.quantize(pitches[_patternPlaying][_currentStep] $ int) => int currentNote;
+		(pitches[_patternPlaying][_currentStep] $ int) => int currentNote;
+		(currentNote + _transpose + (_octave * 12)) $ int => currentNote;
+		return currentNote;
+	}	
+
 	fun void doStep() {
-		int _velocity;
-		if(_triggers[_patternPlaying][_currentStep]>0) {
-			80 => _velocity;
-			if(accents[_patternPlaying][_currentStep]) 40 +=> _velocity;
-			// modeQuantizer.quantize(pitches[_patternPlaying][_currentStep] $ int) => int currentNote;
-			(pitches[_patternPlaying][_currentStep] $ int) => int currentNote;
-			<<<currentNote>>>;
-			(currentNote + _transpose + (_octave * 12)) $ int => currentNote;
+		<<<"====== doStep() begins ======", "">>>;
+		getVelocity() => int _velocity;
+		getPitch() => int currentNote;
+
+		if(_triggers[_patternPlaying][_currentStep] > 0) {
+
+			// TIE
 			if(ties[_patternPlaying][_currentStep]) {
 				if(currentNote != _lastNote) {
-					 <<<"currrent note on", "">>>;
+					<<<"	* tie *", "">>>;
+					<<<"new note on", "">>>;
 					Utility.midiOut(0x90 + midiChannel, currentNote, _velocity, midiOut);
-					2::ms => now;
+					10::ms => now;
 					<<<"last note off", "">>>;
-					Utility.midiOut(0x80 + midiChannel, _lastNote, 10, midiOut);
+					Utility.midiOut(0x80+ midiChannel, _lastNote, 10, midiOut);
 				}
+				else {
+					<<<"	* hold * ", "">>>;
+				}
+
 			}
 			else { // gate
-				<<<"current note on", "">>>;
+				<<<"new note on", "">>>;
 				Utility.midiOut(0x90 + midiChannel, currentNote, _velocity, midiOut);
 				spork ~ noteOffAfterStepDur(currentNote, _velocity);
+
 				if(currentNote != _lastNote) {
 					2::ms => now;
 					<<<"last note off", "">>>;
