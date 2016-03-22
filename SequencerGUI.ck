@@ -102,7 +102,7 @@ fun void triggerButtonLoop( int step ) {
 }
 
 fun void tieButtonLoop( int step ) {
-  while( triggerButtons[step] => now ) {
+  while( tieButtons[step] => now ) {
     pitchSeq.tie( step, tieButtons[step].state() );
   }
 }
