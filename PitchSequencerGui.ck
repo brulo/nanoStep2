@@ -10,9 +10,10 @@ public class PitchSequencerGui {
   300 => int sliderSizeY;
   125 => int sliderOffsetY;
 
-  0 => int x; 0 => int y;  // offset for all elements on the main panel
+  50 => int stepLengthSliderOffset;
 
   MAUI_Slider pitchSliders[numSteps];
+  MAUI_Slider stepLengthSlider;
   MAUI_Button triggerButtons[numSteps];
   MAUI_Button accentButtons[numSteps];
   MAUI_Button tieButtons[numSteps];
@@ -32,19 +33,19 @@ public class PitchSequencerGui {
 
   fun void initButtons() {
     for( 0 => int i; i < numSteps; i++ ) {
-      triggerButtons[i].position( x + i*50 + buttonPaddingX + textOffsetX, y );
+      triggerButtons[i].position( i*50 + buttonPaddingX + textOffsetX, stepLengthSliderOffset );
       triggerButtons[i].toggleType();
       triggerButtons[i].size( buttonSize, buttonSize );
       spork ~ triggerButtonLoop( i );
       view.addElement( triggerButtons[i] );
 
-      tieButtons[i].position( x + i*50 + buttonPaddingX + textOffsetX, y + 50 );
+      tieButtons[i].position( i*50 + buttonPaddingX + textOffsetX, 50 + stepLengthSliderOffset );
       tieButtons[i].toggleType();
       tieButtons[i].size( buttonSize, buttonSize );
       spork ~ tieButtonLoop( i );
       view.addElement( tieButtons[i] );
 
-      accentButtons[i].position( x + i*50 + buttonPaddingX + textOffsetX, y + 100 );
+      accentButtons[i].position( i*50 + buttonPaddingX + textOffsetX, 100 + stepLengthSliderOffset );
       accentButtons[i].toggleType();
       accentButtons[i].size( buttonSize, buttonSize );
       spork ~ accentButtonLoop( i );
@@ -54,25 +55,30 @@ public class PitchSequencerGui {
 
   fun void initSliders() {
     for( 0 => int i; i < 8; i++ ) {
-      pitchSliders[i].position( x + i*50 + textOffsetX, y + sliderOffsetY );
+      pitchSliders[i].position( i*50 + textOffsetX, sliderOffsetY + stepLengthSliderOffset );
       pitchSliders[i].orientation( 2 );
       pitchSliders[i].size( sliderSizeX, sliderSizeY );
       spork ~ pitchSliderLoop( i ); 
       view.addElement( pitchSliders[i] );
     }
+
+    stepLengthSlider.position( 0, 0 );
+    stepLengthSlider.name( "Step Length" );
+    spork ~ stepLengthLoop();
+    view.addElement( stepLengthSlider );
   }
 
   fun void initText() {
       triggerText.name( "Trigger" );
-      triggerText.position( x, 0 );
+      triggerText.position( 7, stepLengthSliderOffset );
       view.addElement( triggerText );
 
       slideText.name( "Slide" );
-      slideText.position( x, 50 );
+      slideText.position( 7, 50 + stepLengthSliderOffset );
       view.addElement( slideText );
 
       accentText.name( "Accent" );
-      accentText.position( x, 100 );
+      accentText.position( 7, 100 + stepLengthSliderOffset );
       view.addElement( accentText );
   }
 
@@ -99,6 +105,12 @@ public class PitchSequencerGui {
   fun void pitchSliderLoop( int step ) {
     while( pitchSliders[step] => now ) {
       pitchSeq.pitch( step, pitchSliders[step].value() * numSteps );
+    }
+  }
+
+  fun void stepLengthLoop() {
+    while( stepLengthSlider => now ) {
+      pitchSeq.stepLength( stepLengthSlider.value() );
     }
   }
 
