@@ -6,4 +6,6 @@ Machine.add(me.dir(-2) + "clock/InternalClockGui.ck");
 Machine.add(me.dir(-2) + "/Sequencer.ck");
 Machine.add(me.dir(-2) + "/ModeQuantizer.ck");
 Machine.add(me.dir(-2) + "/PitchSequencer.ck");
-Machine.add(me.dir(-2) + "/SequencerGUI.ck");
+Machine.add(me.dir(-2) + "/PitchSequencerGui.ck");
+Machine.add(me.dir() + "/PitchSequencerGuiDemo.ck");
+
