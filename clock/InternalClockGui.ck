@@ -2,10 +2,11 @@ public class InternalClockGui {
 	MAUI_Button onButton;
 	MAUI_Slider bpmSlider, swingSlider;
 	MAUI_LED stepLed;
+	MAUI_View view;
 	InternalClock clock;
 
-	fun void init(InternalClock theClock, MAUI_View view) {
-		theClock @=> clock;
+	fun void init() {
+		clock.init();
 
 		onButton.name("On");
 		onButton.toggleType();
@@ -27,11 +28,13 @@ public class InternalClockGui {
 		swingSlider.position(0, 100);
 		swingSlider.value(0.0);
 		view.addElement(swingSlider);
-
 		
 		spork ~ _sliderLoop();
 		spork ~ _onButtonLoop();
 		spork ~ _stepLedLoop();
+
+		view.size(250, 200);
+		view.display();
 	}
 
 	fun void _onButtonLoop() {
