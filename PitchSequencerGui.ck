@@ -1,8 +1,4 @@
 public class PitchSequencerGui {
-  8 => int numSteps;
-
-  25 => int textOffsetX;
-
   15 => int buttonPaddingX;
   70 => int buttonSize;
 
@@ -10,13 +6,19 @@ public class PitchSequencerGui {
   300 => int sliderSizeY;
   125 => int sliderOffsetY;
 
+  8 => int numSteps;
+  25 => int textOffsetX;
   50 => int stepLengthSliderOffset;
+  225 => int patternSelectButtonsPadding;
+
 
   MAUI_Slider pitchSliders[numSteps];
   MAUI_Slider stepLengthSlider;
   MAUI_Button triggerButtons[numSteps];
   MAUI_Button accentButtons[numSteps];
   MAUI_Button tieButtons[numSteps];
+  MAUI_Button patternSelectorButtons[4];
+  MAUI_LED patternPlayingLeds[4];
   MAUI_View view;
   MAUI_Text triggerText, slideText, accentText;
   PitchSequencer pitchSeq;
@@ -32,6 +34,7 @@ public class PitchSequencerGui {
   }
 
   fun void initButtons() {
+    // per step buttons 
     for( 0 => int i; i < numSteps; i++ ) {
       triggerButtons[i].position( i*50 + buttonPaddingX + textOffsetX, stepLengthSliderOffset );
       triggerButtons[i].toggleType();
@@ -50,7 +53,24 @@ public class PitchSequencerGui {
       accentButtons[i].size( buttonSize, buttonSize );
       spork ~ accentButtonLoop( i );
       view.addElement( accentButtons[i] );
-    } 
+    }
+
+    // pattern select buttons
+    for( 0 => int i; i < patternSelectorButtons.cap(); i++ ) {
+      patternSelectorButtons[i].position( patternSelectButtonsPadding + i*50, 0);
+      patternSelectorButtons[i].toggleType();
+      patternSelectorButtons[i].size( buttonSize, buttonSize );
+      spork ~ patternSelectorLoop( patternSelectorButtons[i], i );
+      view.addElement( patternSelectorButtons[i] );
+    }
+  }
+
+  fun void initLeds() {
+    for( 0 => int i; i < patternPlayingLeds.cap(); i++ ) {
+      patternPlayingLeds[i].color( 1 );
+      patternPlayingLeds[i].position( patternSelectButtonsPadding + i*25, 0 );
+      view.addElement( patternPlayingLeds[i] ); 
+    }
   }
 
   fun void initSliders() {
@@ -83,7 +103,51 @@ public class PitchSequencerGui {
   }
 
   // * UI Loops *
-  
+  fun void patternSelectorLoop( MAUI_Button button, int patternNumber ) {
+    while( button => now ) {
+      if( button.state() == 1 ) { 
+
+        if( patternNumber != pitchSeq.patternEditing() ) {
+          pitchSeq.patternEditing( patternNumber );
+        }
+        else {
+          pitchSeq.patternPlaying( patternNumber );
+          for( 0 => int i; i < patternPlayingLeds.cap(); i++ ) {
+            patternPlayingLeds[i].unlight;
+          }
+          patternPlayingLeds[patternNumber].light;
+        }
+
+        for( 0 => int i; i < patternSelectorButtons.cap(); i++ ) {
+          patternSelectorButtons[i].state( 0 );   
+        }
+
+        button.state( 1 );
+        updateUi();
+      }
+    }
+  }
+
+  fun void updateUi() {
+    updateSliderValues();
+    updateButtonValues();
+  }
+
+  fun void updateSliderValues() {
+    for( 0 => int i; i < numSteps; i++ ) {
+      //pitchSliders[i].value( pitchSeq.pitch(i) / 8.0 );
+      pitchSeq.pitch(i) / 8.0 => pitchSliders[i].value;
+    }
+  }
+
+  fun void updateButtonValues() {
+    for( 0 => int i; i < numSteps; i++ ) {
+      triggerButtons[i].state( pitchSeq.trigger(i) $ int );
+      accentButtons[i].state( pitchSeq.accent(i) $ int);
+      tieButtons[i].state( pitchSeq.tie(i) $ int );
+    }
+  }
+
   fun void triggerButtonLoop( int step ) {
     while( triggerButtons[step] => now ) {
       pitchSeq.trigger( step, triggerButtons[step].state() );
