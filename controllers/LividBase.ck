@@ -31,16 +31,16 @@ public class LividBase {
 	 [22, 30], [23, 31], [24, 32], [25, 33]] @=> int buttonLeds[][];
 
 	fun void init() {
-		<<<"Initializing Livid Base...", "">>>;
-		if(midiIn.open(midiDeviceName))
-			<<<midiIn.name(), "input opened sucessfully!">>>;
+		<<< "\nInitializing Livid Base...", "">>>;
+		if( midiIn.open(midiDeviceName) )
+			<<< "	", "Success: opened midi input with \"" + midiIn.name() + "\"" >>>;
 		else
-			<<<midiDeviceName, "input did not open sucessfully...">>>;
+			<<< "	", "Failure: unable to open midi input with \"" + midiDeviceName + "\"" >>>;
 
-		if(midiOut.open(midiDeviceName))
-			<<<midiOut.name(), "output opened sucessfully!">>>;
+		if( midiOut.open(midiDeviceName) )
+			<<< "	", "Success: opened midi output with \"" + midiOut.name() + "\"" >>>;
 		else
-			<<<midiDeviceName, "output did not open sucessfully...">>>; 
+			<<< "	", "Failure: unable to open midi output with \"" + midiDeviceName + "\"" >>>;
 
 		allLedsOff();
 	}

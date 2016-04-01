@@ -22,28 +22,78 @@ Metronome metro;
 -1 => int touchButtonHeld;
 0 => int patternLengthChanged;
 
-/* if(midiOut.open("UltraLite mk3 Hybrid MIDI Port")) */ 
-if(midiOut.open("IAC Driver IAC Bus 1"))
-<<<midiOut.name(), "successfully opened for sequencers[sequencerIndex] output">>>;
+main();
 
-base.init();
-clock.init();
-clock.start();
-clock.swingAmount(0.2);
-clock.bpm(125);
-for(int i; i < sequencers.cap(); i++) {
-	sequencers[i].init(clock, midiOut);
-	//sequencers[i].patternLength(32);
-	i => sequencers[i].midiChannel;
+
+fun void init() {
+	<<< "\n==== Initializing LividStep! ====", "\n" >>>;
+
+	initMidi();
+	initClock();
+	initSequencers();
+	initBase();
+
+	// metronome for debugging
+	//metro.init(clock);
+
+	<<< "\n==== LividStep initialized! ====", "\n" >>>;
 }
-//metro.init(clock);
 
-base.setButtonLed(0, "left", "blue");
-base.setButtonLed(0, "right", "red");
-base.setButtonLed(4, "left", "magenta");
-base.setButtonLed(4, "right", "magenta");
-base.setTouchButtonLed(pageIndex, "center", 
-		pageSelectLedColor);
+fun void initMidi() {
+	<<< "Initializing Sequencer Midi Output...", "" >>>;
+
+	"IAC Driver IAC Bus 1" => string midiOutputName;
+	if( midiOut.open(midiOutputName) ) {
+		<<< "	", "Success: opened", midiOut.name() >>>;
+	}
+	else {
+		<<< "	Failure: Unable to open", midiOutputName >>>;
+	}
+}
+
+fun void initClock() {
+	clock.init();
+	clock.start();
+	clock.swingAmount(0.2);
+	clock.bpm(125);
+}
+
+fun void initSequencers() {
+	for(int i; i < sequencers.cap(); i++) {
+		sequencers[i].init(clock, midiOut);
+		//sequencers[i].patternLength(32);
+		i => sequencers[i].midiChannel;
+	}
+}
+
+fun void initBase() {
+	base.init();
+	base.setButtonLed(0, "left", "blue");
+	base.setButtonLed(0, "right", "red");
+	base.setButtonLed(4, "left", "magenta");
+	base.setButtonLed(4, "right", "magenta");
+	base.setTouchButtonLed(pageIndex, "center", 
+			pageSelectLedColor);
+}
+
+fun void main() {
+	init();
+
+	MidiMsg msg;
+	while(base.midiIn => now) {
+		while(base.midiIn.recv(msg)) {
+			if( faderAction(msg) ) {
+			}
+			else if(msg.data3 > 0) {
+				if( buttonAction(msg) ) {
+				}
+				else if(base.isPad(msg) > -1) {
+					padAction( msg );
+				}
+			}
+		}
+	}
+}
 
 fun int faderAction( MidiMsg msg )
 {
@@ -88,63 +138,46 @@ fun int buttonAction( MidiMsg msg ) {
 }
 
 fun int padAction( MidiMsg msg ) {
-	if(base.isPad(msg) > -1) {
-		base.getPadCoordinate(msg) @=> int pad[];
-		pad[0] => int x;
-		pad[1] => int y;
-		x + (pageIndex * 8) => int stepIndex;
+	base.getPadCoordinate(msg) @=> int pad[];
+	pad[0] => int x;
+	pad[1] => int y;
+	x + (pageIndex * 8) => int stepIndex;
 
-		// trigger
-		if(y == triggerLedRow) { 
-			if(sequencers[sequencerIndex].trigger(stepIndex) > 0.0) {
-				sequencers[sequencerIndex].trigger(stepIndex, 0.0);
-				base.setPadLed(x, y, "off");
-			}
-			else {
-				sequencers[sequencerIndex].trigger(stepIndex, 1.0);
-				base.setPadLed(x, y, triggerLedColor);
-			}
+	// trigger
+	if(y == triggerLedRow) { 
+		if(sequencers[sequencerIndex].trigger(stepIndex) > 0.0) {
+			sequencers[sequencerIndex].trigger(stepIndex, 0.0);
+			base.setPadLed(x, y, "off");
 		}
-		// tie
-		else if(y == tieLedRow) { 
-			if(sequencers[sequencerIndex].tie(stepIndex)) {
-				sequencers[sequencerIndex].tie(stepIndex, 0);
-				base.setPadLed(x, y, "off");
-			}
-			else {
-				sequencers[sequencerIndex].tie(stepIndex, 1);
-				base.setPadLed(x, y, tieLedColor);
-			}
-		}
-		// accent
-		else if(y == accentLedRow) { 
-			if(sequencers[sequencerIndex].accent(stepIndex)) {
-				sequencers[sequencerIndex].accent(stepIndex, 0);
-				base.setPadLed(x, y, "off");
-			}
-			else {
-				sequencers[sequencerIndex].accent(stepIndex, 1);
-				base.setPadLed(x, y, accentLedColor);
-			}
-		}
-		return 1;
-	}
-	return 0;
-}
-
-MidiMsg msg;
-while(base.midiIn => now) {
-	while(base.midiIn.recv(msg)) {
-		if( faderAction(msg) ) {
-		}
-		else if(msg.data3 > 0) {
-			if( buttonAction(msg) ) {
-			}
-			else if( padAction(msg) ) {
-			}
+		else {
+			sequencers[sequencerIndex].trigger(stepIndex, 1.0);
+			base.setPadLed(x, y, triggerLedColor);
 		}
 	}
+	// tie
+	else if(y == tieLedRow) { 
+		if(sequencers[sequencerIndex].tie(stepIndex)) {
+			sequencers[sequencerIndex].tie(stepIndex, 0);
+			base.setPadLed(x, y, "off");
+		}
+		else {
+			sequencers[sequencerIndex].tie(stepIndex, 1);
+			base.setPadLed(x, y, tieLedColor);
+		}
+	}
+	// accent
+	else if(y == accentLedRow) { 
+		if(sequencers[sequencerIndex].accent(stepIndex)) {
+			sequencers[sequencerIndex].accent(stepIndex, 0);
+			base.setPadLed(x, y, "off");
+		}
+		else {
+			sequencers[sequencerIndex].accent(stepIndex, 1);
+			base.setPadLed(x, y, accentLedColor);
+		}
+		}
 }
+
 
 fun void changeStepPage(int newPageIndex) {
 	Utility.clampi(newPageIndex, 0, maxPages) => newPageIndex;
