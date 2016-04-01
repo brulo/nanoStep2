@@ -23,7 +23,7 @@ Metronome metro;
 0 => int patternLengthChanged;
 
 /* if(midiOut.open("UltraLite mk3 Hybrid MIDI Port")) */ 
-if(midiOut.open("IAC Driver Bus 1"))
+if(midiOut.open("IAC Driver IAC Bus 1"))
 <<<midiOut.name(), "successfully opened for sequencers[sequencerIndex] output">>>;
 
 base.init();
@@ -33,10 +33,10 @@ clock.swingAmount(0.2);
 clock.bpm(125);
 for(int i; i < sequencers.cap(); i++) {
 	sequencers[i].init(clock, midiOut);
-	sequencers[i].patternLength(32);
+	//sequencers[i].patternLength(32);
 	i => sequencers[i].midiChannel;
 }
-/* metro.init(clock); */
+//metro.init(clock);
 
 base.setButtonLed(0, "left", "blue");
 base.setButtonLed(0, "right", "red");
@@ -45,124 +45,102 @@ base.setButtonLed(4, "right", "magenta");
 base.setTouchButtonLed(pageIndex, "center", 
 		pageSelectLedColor);
 
+fun int faderAction( MidiMsg msg )
+{
+	if(base.isFader(msg) > -1) {
+		base.isFader(msg) => int faderIdx;
+		if(faderIdx < 8) {
+			sequencers[sequencerIndex].pitch(faderIdx + (pageIndex * 8), 
+					Utility.remap(msg.data3, 0, 127, 0, 7));
+		}
+		else {
+			sequencers[sequencerIndex].stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
+		}
+		base.setFaderLed(msg);
+		return 1;
+	}
+	return 0;
+}
+
+fun int buttonAction( MidiMsg msg ) {
+	if(base.isButton(msg) > -1) {
+		base.isButton(msg) => int buttonIndex;
+		// pattern playing/editing
+		if(buttonIndex < 4) {  // change pattern being edited
+			if(sequencers[sequencerIndex].patternEditing() != buttonIndex) {
+				base.setButtonLed(sequencers[sequencerIndex].patternEditing(), "left", "off");
+				base.setButtonLed(buttonIndex, "left", patternEditingLedColor);
+				sequencers[sequencerIndex].patternEditing(buttonIndex);
+				updateStepLeds();
+			}
+			else { 	// change pattern being played
+				base.setButtonLed(sequencers[sequencerIndex].patternPlaying(), "right", "off");
+				base.setButtonLed(buttonIndex, "right", patternPlayingLedColor);
+				sequencers[sequencerIndex].patternPlaying(buttonIndex);
+			}
+		}
+		else if(buttonIndex < 6) {
+			changeSequencer(buttonIndex - 4);
+		}
+		return 1;
+	}
+	return 0;
+}
+
+fun int padAction( MidiMsg msg ) {
+	if(base.isPad(msg) > -1) {
+		base.getPadCoordinate(msg) @=> int pad[];
+		pad[0] => int x;
+		pad[1] => int y;
+		x + (pageIndex * 8) => int stepIndex;
+
+		// trigger
+		if(y == triggerLedRow) { 
+			if(sequencers[sequencerIndex].trigger(stepIndex) > 0.0) {
+				sequencers[sequencerIndex].trigger(stepIndex, 0.0);
+				base.setPadLed(x, y, "off");
+			}
+			else {
+				sequencers[sequencerIndex].trigger(stepIndex, 1.0);
+				base.setPadLed(x, y, triggerLedColor);
+			}
+		}
+		// tie
+		else if(y == tieLedRow) { 
+			if(sequencers[sequencerIndex].tie(stepIndex)) {
+				sequencers[sequencerIndex].tie(stepIndex, 0);
+				base.setPadLed(x, y, "off");
+			}
+			else {
+				sequencers[sequencerIndex].tie(stepIndex, 1);
+				base.setPadLed(x, y, tieLedColor);
+			}
+		}
+		// accent
+		else if(y == accentLedRow) { 
+			if(sequencers[sequencerIndex].accent(stepIndex)) {
+				sequencers[sequencerIndex].accent(stepIndex, 0);
+				base.setPadLed(x, y, "off");
+			}
+			else {
+				sequencers[sequencerIndex].accent(stepIndex, 1);
+				base.setPadLed(x, y, accentLedColor);
+			}
+		}
+		return 1;
+	}
+	return 0;
+}
+
 MidiMsg msg;
 while(base.midiIn => now) {
 	while(base.midiIn.recv(msg)) {
-		// pattern length, step page view
-
-
-		if(base.isTouchButton(msg) > -1) {
-			base.isTouchButton(msg) => int buttonIdx;
-			if(msg.data3 > 0) {  // button down
-				if(touchButtonHeld < 0) {
-					buttonIdx => touchButtonHeld;
-					0 => patternLengthChanged;
-					<<<"anchor button:", touchButtonHeld>>>;
-				}
-				else {
-					1 => patternLengthChanged;
-					if(buttonIdx - touchButtonHeld > 0) {
-						<<<"pattern length changed to:", (buttonIdx - touchButtonHeld) * 8>>>;
-						for(int i; i < 8; i++)
-							base.setTouchButtonLed(i, "top", "off");
-						for(touchButtonHeld => int i; i <= buttonIdx; i++)
-							base.setTouchButtonLed(i, "top", "green");
-					}
-				}
-			}
-			else {              // button up
-				if(buttonIdx == touchButtonHeld) {
-					if(!patternLengthChanged) { 
-						<<<"change step page", buttonIdx>>>;
-						changeStepPage(buttonIdx);
-						for(int i; i < 8; i++)
-							base.setTouchButtonLed(i, "center", "off");
-						base.setTouchButtonLed(buttonIdx, "center", "red");
-					}
-					-1 => touchButtonHeld;
-				}
-			}
+		if( faderAction(msg) ) {
 		}
-
-		// faders
-		else if(base.isFader(msg) > -1) {
-			base.isFader(msg) => int faderIdx;
-			if(faderIdx < 8) {
-				sequencers[sequencerIndex].pitch(faderIdx + (pageIndex * 8), 
-						Utility.remap(msg.data3, 0, 127, 0, 7));
-			}
-			else {
-				sequencers[sequencerIndex].stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
-			}
-			base.setFaderLed(msg);
-		}
-
 		else if(msg.data3 > 0) {
-			if(base.isTouchButton(msg) > -1) {
-				base.isTouchButton(msg) => int buttonIdx;
-				if(buttonIdx < 2) {
-					changeStepPage(buttonIdx);
-				}
+			if( buttonAction(msg) ) {
 			}
-			else if(base.isButton(msg) > -1) {
-				base.isButton(msg) => int buttonIndex;
-				// pattern playing/editing
-				if(buttonIndex < 4) {  // change pattern being edited
-					if(sequencers[sequencerIndex].patternEditing() != buttonIndex) {
-						base.setButtonLed(sequencers[sequencerIndex].patternEditing(), "left", "off");
-						base.setButtonLed(buttonIndex, "left", patternEditingLedColor);
-						sequencers[sequencerIndex].patternEditing(buttonIndex);
-						updateStepLeds();
-					}
-					else { 	// change pattern being played
-						base.setButtonLed(sequencers[sequencerIndex].patternPlaying(), "right", "off");
-						base.setButtonLed(buttonIndex, "right", patternPlayingLedColor);
-						sequencers[sequencerIndex].patternPlaying(buttonIndex);
-					}
-				}
-				else if(buttonIndex < 6) {
-					changeSequencer(buttonIndex - 4);
-				}
-			}
-			else if(base.isPad(msg) > -1) {
-				base.getPadCoordinate(msg) @=> int pad[];
-				pad[0] => int x;
-				pad[1] => int y;
-				x + (pageIndex * 8) => int stepIndex;
-
-				// trigger
-				if(y == triggerLedRow) { 
-					if(sequencers[sequencerIndex].trigger(stepIndex) > 0.0) {
-						sequencers[sequencerIndex].trigger(stepIndex, 0.0);
-						base.setPadLed(x, y, "off");
-					}
-					else {
-						sequencers[sequencerIndex].trigger(stepIndex, 1.0);
-						base.setPadLed(x, y, triggerLedColor);
-					}
-				}
-				// tie
-				else if(y == tieLedRow) { 
-					if(sequencers[sequencerIndex].tie(stepIndex)) {
-						sequencers[sequencerIndex].tie(stepIndex, 0);
-						base.setPadLed(x, y, "off");
-					}
-					else {
-						sequencers[sequencerIndex].tie(stepIndex, 1);
-						base.setPadLed(x, y, tieLedColor);
-					}
-				}
-				// accent
-				else if(y == accentLedRow) { 
-					if(sequencers[sequencerIndex].accent(stepIndex)) {
-						sequencers[sequencerIndex].accent(stepIndex, 0);
-						base.setPadLed(x, y, "off");
-					}
-					else {
-						sequencers[sequencerIndex].accent(stepIndex, 1);
-						base.setPadLed(x, y, accentLedColor);
-					}
-				}
+			else if( padAction(msg) ) {
 			}
 		}
 	}
