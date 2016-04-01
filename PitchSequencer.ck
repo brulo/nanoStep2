@@ -13,8 +13,13 @@ public class PitchSequencer extends Sequencer {
 	int _numberOfPatterns, _patternPlaying, _patternEditing;
 
 	fun void init(Clock clock, MidiOut theMidiOut) {
+		init(clock, theMidiOut, 0);
+	}
+
+	fun void init(Clock clock, MidiOut theMidiOut, int theMidiChannel) {
 		_init(clock);
 		theMidiOut @=> midiOut;
+		theMidiChannel => midiChannel;
 
 		8 => _numberOfPatterns;
 		0 => _patternEditing => _patternPlaying;

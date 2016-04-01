@@ -60,7 +60,7 @@ fun void initClock() {
 
 fun void initSequencers() {
 	for(int i; i < sequencers.cap(); i++) {
-		sequencers[i].init(clock, midiOut);
+		sequencers[i].init(clock, midiOut, i);
 		//sequencers[i].patternLength(32);
 		i => sequencers[i].midiChannel;
 	}
@@ -80,14 +80,16 @@ fun void main() {
 	init();
 
 	MidiMsg msg;
-	while(base.midiIn => now) {
-		while(base.midiIn.recv(msg)) {
-			if( faderAction(msg) ) {
+	while( base.midiIn => now ) {
+		while( base.midiIn.recv(msg) ) {
+			if( base.isFader(msg) > -1 ) {
+				faderAction( msg );
 			}
-			else if(msg.data3 > 0) {
-				if( buttonAction(msg) ) {
+			else if( msg.data3 > 0 ) {
+				if( base.isButton(msg) > -1 ) {
+					buttonAction( msg );
 				}
-				else if(base.isPad(msg) > -1) {
+				else if( base.isPad(msg) > -1 ) {
 					padAction( msg );
 				}
 			}
@@ -95,49 +97,41 @@ fun void main() {
 	}
 }
 
-fun int faderAction( MidiMsg msg )
+fun void faderAction( MidiMsg msg )
 {
-	if(base.isFader(msg) > -1) {
-		base.isFader(msg) => int faderIdx;
-		if(faderIdx < 8) {
-			sequencers[sequencerIndex].pitch(faderIdx + (pageIndex * 8), 
-					Utility.remap(msg.data3, 0, 127, 0, 7));
-		}
-		else {
-			sequencers[sequencerIndex].stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
-		}
-		base.setFaderLed(msg);
-		return 1;
+	base.isFader(msg) => int faderIdx;
+	if(faderIdx < 8) {
+		sequencers[sequencerIndex].pitch(faderIdx + (pageIndex * 8), 
+				Utility.remap(msg.data3, 0, 127, 0, 7));
 	}
-	return 0;
+	else {
+		sequencers[sequencerIndex].stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
+	}
+	base.setFaderLed(msg);
 }
 
-fun int buttonAction( MidiMsg msg ) {
-	if(base.isButton(msg) > -1) {
-		base.isButton(msg) => int buttonIndex;
-		// pattern playing/editing
-		if(buttonIndex < 4) {  // change pattern being edited
-			if(sequencers[sequencerIndex].patternEditing() != buttonIndex) {
-				base.setButtonLed(sequencers[sequencerIndex].patternEditing(), "left", "off");
-				base.setButtonLed(buttonIndex, "left", patternEditingLedColor);
-				sequencers[sequencerIndex].patternEditing(buttonIndex);
-				updateStepLeds();
-			}
-			else { 	// change pattern being played
-				base.setButtonLed(sequencers[sequencerIndex].patternPlaying(), "right", "off");
-				base.setButtonLed(buttonIndex, "right", patternPlayingLedColor);
-				sequencers[sequencerIndex].patternPlaying(buttonIndex);
-			}
+fun void buttonAction( MidiMsg msg ) {
+	base.isButton(msg) => int buttonIndex;
+	// pattern playing/editing
+	if(buttonIndex < 4) {  // change pattern being edited
+		if(sequencers[sequencerIndex].patternEditing() != buttonIndex) {
+			base.setButtonLed(sequencers[sequencerIndex].patternEditing(), "left", "off");
+			base.setButtonLed(buttonIndex, "left", patternEditingLedColor);
+			sequencers[sequencerIndex].patternEditing(buttonIndex);
+			updateStepLeds();
 		}
-		else if(buttonIndex < 6) {
-			changeSequencer(buttonIndex - 4);
+		else { 	// change pattern being played
+			base.setButtonLed(sequencers[sequencerIndex].patternPlaying(), "right", "off");
+			base.setButtonLed(buttonIndex, "right", patternPlayingLedColor);
+			sequencers[sequencerIndex].patternPlaying(buttonIndex);
 		}
-		return 1;
 	}
-	return 0;
+	else if(buttonIndex < 6) {
+		changeSequencer(buttonIndex - 4);
+	}
 }
 
-fun int padAction( MidiMsg msg ) {
+fun void padAction( MidiMsg msg ) {
 	base.getPadCoordinate(msg) @=> int pad[];
 	pad[0] => int x;
 	pad[1] => int y;
@@ -175,9 +169,8 @@ fun int padAction( MidiMsg msg ) {
 			sequencers[sequencerIndex].accent(stepIndex, 1);
 			base.setPadLed(x, y, accentLedColor);
 		}
-		}
+	}
 }
-
 
 fun void changeStepPage(int newPageIndex) {
 	Utility.clampi(newPageIndex, 0, maxPages) => newPageIndex;
