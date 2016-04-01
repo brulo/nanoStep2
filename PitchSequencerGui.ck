@@ -1,4 +1,5 @@
 public class PitchSequencerGui {
+  12.0 => float pitchSliderRange;
   15 => int buttonPaddingX;
   70 => int buttonSize;
 
@@ -10,7 +11,6 @@ public class PitchSequencerGui {
   25 => int textOffsetX;
   50 => int stepLengthSliderOffset;
   225 => int patternSelectButtonsPadding;
-
 
   MAUI_Slider pitchSliders[numSteps];
   MAUI_Slider stepLengthSlider;
@@ -78,6 +78,7 @@ public class PitchSequencerGui {
       pitchSliders[i].position( i*50 + textOffsetX, sliderOffsetY + stepLengthSliderOffset );
       pitchSliders[i].orientation( 2 );
       pitchSliders[i].size( sliderSizeX, sliderSizeY );
+      pitchSliders[i].range(0.0, pitchSliderRange);
       spork ~ pitchSliderLoop( i ); 
       view.addElement( pitchSliders[i] );
     }
@@ -102,11 +103,30 @@ public class PitchSequencerGui {
       view.addElement( accentText );
   }
 
+  // UI Updates (called when patternEditing/patternPlaying changed)
+  fun void updateUi() {
+    updateSliderValues();
+    updateButtonValues();
+  }
+
+  fun void updateSliderValues() {
+    for( 0 => int i; i < numSteps; i++ ) {
+      pitchSliders[i].value( pitchSeq.pitch(i) );
+    }
+  }
+
+  fun void updateButtonValues() {
+    for( 0 => int i; i < numSteps; i++ ) {
+      triggerButtons[i].state( pitchSeq.trigger(i) $ int );
+      accentButtons[i].state( pitchSeq.accent(i) $ int);
+      tieButtons[i].state( pitchSeq.tie(i) $ int );
+    }
+  }
+
   // * UI Loops *
   fun void patternSelectorLoop( MAUI_Button button, int patternNumber ) {
     while( button => now ) {
       if( button.state() == 1 ) { 
-
         if( patternNumber != pitchSeq.patternEditing() ) {
           pitchSeq.patternEditing( patternNumber );
         }
@@ -125,26 +145,6 @@ public class PitchSequencerGui {
         button.state( 1 );
         updateUi();
       }
-    }
-  }
-
-  fun void updateUi() {
-    updateSliderValues();
-    updateButtonValues();
-  }
-
-  fun void updateSliderValues() {
-    for( 0 => int i; i < numSteps; i++ ) {
-      //pitchSliders[i].value( pitchSeq.pitch(i) / 8.0 );
-      pitchSeq.pitch(i) / 8.0 => pitchSliders[i].value;
-    }
-  }
-
-  fun void updateButtonValues() {
-    for( 0 => int i; i < numSteps; i++ ) {
-      triggerButtons[i].state( pitchSeq.trigger(i) $ int );
-      accentButtons[i].state( pitchSeq.accent(i) $ int);
-      tieButtons[i].state( pitchSeq.tie(i) $ int );
     }
   }
 
@@ -168,7 +168,7 @@ public class PitchSequencerGui {
 
   fun void pitchSliderLoop( int step ) {
     while( pitchSliders[step] => now ) {
-      pitchSeq.pitch( step, pitchSliders[step].value() * numSteps );
+      pitchSeq.pitch( step, pitchSliders[step].value() );
     }
   }
 
