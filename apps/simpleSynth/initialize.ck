@@ -1,0 +1,13 @@
+Machine.add(me.dir(-2) + "/utilities/Utility.ck");
+Machine.add(me.dir(-2) + "synth_components/ModSource.ck");
+Machine.add(me.dir(-2) + "synth_components/EfAmp.ck");
+Machine.add(me.dir(-2) + "synth_components/MultiOscillator.ck");
+Machine.add(me.dir(-2) + "synth_components/MultiOscillatorGui.ck");
+Machine.add(me.dir(-2) + "synth_components/Lfo.ck");
+Machine.add(me.dir(-2) + "synth_components/LfoGui.ck");
+Machine.add(me.dir(-2) + "synth_components/MultiFilter.ck");
+Machine.add(me.dir(-2) + "synth_components/MultiFilterGui.ck");
+Machine.add(me.dir(-2) + "synth_components/AdsrPlus.ck");
+Machine.add(me.dir(-2) + "synth_components/AdsrPlusGui.ck");
+Machine.add(me.dir(-2) + "/utilities/MAUI_GridKeyboard.ck");
+Machine.add(me.dir() + "/test.ck");
