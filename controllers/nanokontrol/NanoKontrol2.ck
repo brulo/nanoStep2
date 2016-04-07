@@ -5,15 +5,15 @@ public class NanoKontrol2 {
 
     for( 0 => int i; i < 8; i++ ) {
         i => faders[i];
-        i => knob[i];
+        i => knobs[i];
         8 + i => channelButtons[i][0];
         16 + i => channelButtons[i][1];
         24 + i => channelButtons[i][2];
     }
 
     int transportButtons[11];
-    for(0 => int i; i < trans.cap(); i++) {
-        40 + i => trans[i];
+    for(0 => int i; i < transportButtons.cap(); i++) {
+        40 + i => transportButtons[i];
     }
     transportButtons[0] => int rewindButton;
     transportButtons[1] => int fastForwardButton;
@@ -60,9 +60,9 @@ public class NanoKontrol2 {
     }
 
     fun int isButton( int cc ) {
-        for( int i; i < button.size(); i++ ) {
-            for( int j; j < button[0].size(); j++ ) {
-                if( cc == button[i][j]) {
+        for( int i; i < channelButtons.size(); i++ ) {
+            for( int j; j < channelButtons[0].size(); j++ ) {
+                if( cc == channelButtons[i][j]) {
                     return cc;
                 }
             }
@@ -72,17 +72,17 @@ public class NanoKontrol2 {
 
     fun int[] buttonPos( int cc ) {
         int result[2];
-        buttonColumn( cc ) => result[0];
-        buttonRow( cc ) => result[1];
+        channelButtonColumn( cc ) => result[0];
+        channelButtonRow( cc ) => result[1];
 
         return result;
     }
     
-    fun int buttonColumn( int cc ) {
+    fun int channelButtonColumn( int cc ) {
         if( isButton(cc) ) {
-            for( int i; i < button.size(); i++ ) {
-                for( int j; j<button[0].size(); j++ ) {
-                    if( cc == button[i][j] ) {
+            for( int i; i < channelButtons.size(); i++ ) {
+                for( int j; j < channelButtons[0].size(); j++ ) {
+                    if( cc == channelButtons[i][j] ) {
                         return i;
                     }
                 }
@@ -91,11 +91,11 @@ public class NanoKontrol2 {
         return -1;
     }
 
-    fun int buttonRow( int cc ) {
+    fun int channelButtonRow( int cc ) {
         if( isButton(cc) ) {
-            for( int i; i < button.size(); i++ ) {
-                for( int j; j < button[0].size(); j++ ) {
-                    if( cc == button[i][j] ) {
+            for( int i; i < channelButtons.size(); i++ ) {
+                for( int j; j < channelButtons[0].size(); j++ ) {
+                    if( cc == channelButtons[i][j] ) {
                         return j;
                     }
                 }
@@ -105,8 +105,8 @@ public class NanoKontrol2 {
     }
 
     fun int isTransportButton( int cc ) {
-        for( int i; i < trans.size(); i++ ) {
-            if( cc == trans[i] ) {
+        for( int i; i < transportButtons.size(); i++ ) {
+            if( cc == transportButtons[i] ) {
                 return 1;
             }
         }
