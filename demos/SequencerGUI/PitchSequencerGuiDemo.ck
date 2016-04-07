@@ -1,5 +1,5 @@
-InternalClockGui clockGui;
 PitchSequencerGui pitchSequencerGui;
+InternalClockGui clockGui;
 MidiOut midiOut;
 
 midiOut.open("IAC Driver IAC Bus 1");
