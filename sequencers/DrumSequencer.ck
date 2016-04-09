@@ -1,7 +1,7 @@
 // 8 voice drum sequencer. 
 public class DrumSequencer extends Sequencer {
 
-	float triggers[][][]; //[drum][sequence][step]	
+	int triggers[][][]; //[drum][sequence][step]	
 	8 => int _numberOfPatterns;
 	8 => int _numberOfDrums;
 	0 => int _selectedDrum;
@@ -15,18 +15,16 @@ public class DrumSequencer extends Sequencer {
 		theMidiOut @=> midiOut;	
 		theMidiChannel => midiChannel;
 
-		new float[_numberOfDrums][_numberOfPatterns][_numberOfSteps] @=> triggers;
+		new int[_numberOfDrums][_numberOfPatterns][_numberOfSteps] @=> triggers;
 	}
 
 	fun void doStep() {
 		for( 0 => int drumIndex; drumIndex < _numberOfDrums; drumIndex++ ) {
 			if( triggers[drumIndex][_patternPlaying][_currentStep] > 0 ) {
 				<<< "trigger for drum:", drumIndex >>>;
-				Utility.remap(triggers[drumIndex][_patternPlaying][_currentStep],
-					0.0, 1.0,
-					0, 127) $ int => int velocity;
+				triggers[drumIndex][_patternPlaying][_currentStep] * 12 => int velocity;
 
-				Utility.midiOut( 0x90 + midiChannel, drumIndex + 48, velocity, midiOut );
+				Utility.midiOut( 0x90 + midiChannel, drumIndex + 36, velocity, midiOut );
 				spork ~ gateShred( drumIndex + 36, velocity );
 			}
 		}
@@ -36,12 +34,12 @@ public class DrumSequencer extends Sequencer {
 
 	// * Set and Get Properties * 
 
-	fun float trigger( int step ) {
+	fun int trigger( int step ) {
 		return triggers[_selectedDrum][_patternEditing][step];
 	}
-	fun float trigger( int step, float velocity ) {
-		Utility.clamp( velocity, 0.0, 1.0 ) => velocity;
-		velocity => triggers[_selectedDrum][_patternEditing][step];
+	fun int trigger( int step, int offOrOn ) {
+		Utility.clampi( offOrOn, 0, 1 ) => offOrOn;
+		offOrOn => triggers[_selectedDrum][_patternEditing][step];
 		
 		return triggers[_selectedDrum][_patternEditing][step];
 	}

@@ -4,9 +4,9 @@ public class NanoKontrol2 {
     int channelButtons[8][3];
 
     for( 0 => int i; i < 8; i++ ) {
-        i => faders[i];
-        i => knobs[i];
-        8 + i => channelButtons[i][0];
+        i      => knobs[i];
+        i + 32 => faders[i];
+        8 + i  => channelButtons[i][0];
         16 + i => channelButtons[i][1];
         24 + i => channelButtons[i][2];
     }
@@ -59,7 +59,7 @@ public class NanoKontrol2 {
         return -1;
     }
 
-    fun int isButton( int cc ) {
+    fun int isChannelButton( int cc ) {
         for( int i; i < channelButtons.size(); i++ ) {
             for( int j; j < channelButtons[0].size(); j++ ) {
                 if( cc == channelButtons[i][j]) {
@@ -67,7 +67,7 @@ public class NanoKontrol2 {
                 }
             }
         }
-        return -1;
+        return 0;
     }
 
     fun int[] buttonPos( int cc ) {
@@ -79,7 +79,7 @@ public class NanoKontrol2 {
     }
     
     fun int channelButtonColumn( int cc ) {
-        if( isButton(cc) ) {
+        if( isChannelButton(cc) ) {
             for( int i; i < channelButtons.size(); i++ ) {
                 for( int j; j < channelButtons[0].size(); j++ ) {
                     if( cc == channelButtons[i][j] ) {
@@ -92,7 +92,7 @@ public class NanoKontrol2 {
     }
 
     fun int channelButtonRow( int cc ) {
-        if( isButton(cc) ) {
+        if( isChannelButton(cc) ) {
             for( int i; i < channelButtons.size(); i++ ) {
                 for( int j; j < channelButtons[0].size(); j++ ) {
                     if( cc == channelButtons[i][j] ) {
@@ -114,9 +114,23 @@ public class NanoKontrol2 {
     }   
 
     fun int isControl( int cc ) {
-        if( isFader(cc) | isKnob(cc) | isButton(cc) | isFader(cc) ) {
+        if( isFader(cc) | isKnob(cc) | isChannelButton(cc) | isFader(cc) ) {
             return 1;
         }
         return 0;
     }
+
+    fun void turnAllLedsOff( MidiOut midiOut ) {
+        for( 0 => int x; x < 8; x++ ) {
+            for( 0 => int y; y < 3; y++ ) {
+                channelButtons[x][y] => int cc;
+                Utility.midiOut( 0xB0, cc, 0, midiOut );
+            }
+        }
+
+        for( 0 => int i; i < transportButtons.cap(); i++ ) {
+            Utility.midiOut( 0xB0, transportButtons[i], 0, midiOut );
+        }
+    }
+
 }      
