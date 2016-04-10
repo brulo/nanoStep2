@@ -22,15 +22,13 @@ public class DrumSequencer extends Sequencer {
 		for( 0 => int drumIndex; drumIndex < _numberOfDrums; drumIndex++ ) {
 			if( triggers[drumIndex][_patternPlaying][_currentStep] > 0 ) {
 				<<< "trigger for drum:", drumIndex >>>;
-				triggers[drumIndex][_patternPlaying][_currentStep] * 12 => int velocity;
+				triggers[drumIndex][_patternPlaying][_currentStep] * 100 => int velocity;
 
 				Utility.midiOut( 0x90 + midiChannel, drumIndex + 36, velocity, midiOut );
 				spork ~ gateShred( drumIndex + 36, velocity );
 			}
 		}
 	}
-
-
 
 	// * Set and Get Properties * 
 

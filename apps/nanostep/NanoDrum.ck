@@ -9,8 +9,11 @@ public class NanoDrum {
 		theNanoMidiOut @=> nanoMidiOut;
 		theInstrumentMidiOut @=> instrumentMidiOut;
 
-		drumSequencer.lastStep( 15 ); // not working?
 		drumSequencer.init( clock, instrumentMidiOut, 0 );
+		drumSequencer.firstStep( 0 ); // not working?
+		drumSequencer.lastStep( 15 ); // not working?
+		<<<"drumSequencer last step:", drumSequencer.lastStep()>>>;
+		<<<"drumSequencer first step:", drumSequencer.firstStep()>>>;
 
 		// initialize nanoKontrol
 		nanoKontrol2.turnAllLedsOff( nanoMidiOut );
@@ -49,8 +52,8 @@ public class NanoDrum {
 						}
 					}
 					else if( nanoKontrol2.isKnob(midiMsg.data2) ) {
-						64*drumSequencer.patternEditing() + 8*drumSequencer.selectedDrum() => int knobCc;
-						Utility.midiOut( 0xB0, knobCc, midiMsg.data2, instrumentMidiOut );
+						8 * drumSequencer.selectedDrum() + nanoKontrol2.knobIndex( midiMsg.data2 ) => int knobCc;
+						Utility.midiOut( 0xB0, knobCc, midiMsg.data3, instrumentMidiOut );
 					}
 					else if( nanoKontrol2.isTransportButton(midiMsg.data2) ) {
 						<<<"transport button", "">>>;
@@ -80,8 +83,7 @@ public class NanoDrum {
 		updateTriggerButtonLeds();
 		updateLed( buttonCc, 1 );
 
-		if( drumSequencer.patternPlaying() == patternNumber )
-		{
+		if( drumSequencer.patternPlaying() == patternNumber ) {
 			updateLed( nanoKontrol2.cycleButton, 1 );
 		}
 	}
