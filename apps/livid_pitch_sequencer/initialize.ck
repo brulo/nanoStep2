@@ -1,0 +1,9 @@
+Machine.add(me.dir(-2) + "/utilities/Utility.ck");
+Machine.add(me.dir(-2) + "/utilities/ModeQuantizer.ck");
+Machine.add(me.dir(-2) + "/clock/Clock.ck");
+Machine.add(me.dir(-2) + "/clock/InternalClock.ck");
+Machine.add(me.dir(-2) + "/clock/Metronome.ck");
+Machine.add(me.dir(-2) + "/sequencers/Sequencer.ck");
+Machine.add(me.dir(-2) + "/sequencers/PitchSequencer.ck");
+Machine.add(me.dir(-2) + "/controllers/livid_base/LividBase.ck");
+Machine.add(me.dir(0)  + "LividStep.ck");
