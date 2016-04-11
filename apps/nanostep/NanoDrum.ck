@@ -3,13 +3,15 @@ public class NanoDrum {
 	DrumSequencer drumSequencer;
 	MidiIn nanoMidiIn;
 	MidiOut nanoMidiOut, instrumentMidiOut;
+	int instrumentMidiOutChannel;
 	
-	fun void init( MidiIn theNanoMidiIn, MidiOut theNanoMidiOut, MidiOut theInstrumentMidiOut, Clock clock ) {
+	fun void init( MidiIn theNanoMidiIn, MidiOut theNanoMidiOut, MidiOut theInstrumentMidiOut, int theInstrumentMidiOutChannel, Clock clock ) {
 		theNanoMidiIn @=> nanoMidiIn;
 		theNanoMidiOut @=> nanoMidiOut;
 		theInstrumentMidiOut @=> instrumentMidiOut;
+		theInstrumentMidiOutChannel => instrumentMidiOutChannel;
 
-		drumSequencer.init( clock, instrumentMidiOut, 0 );
+		drumSequencer.init( clock, instrumentMidiOut, theInstrumentMidiOutChannel );
 		drumSequencer.firstStep( 0 ); // not working?
 		drumSequencer.lastStep( 15 ); // not working?
 		<<<"drumSequencer last step:", drumSequencer.lastStep()>>>;
@@ -97,7 +99,7 @@ public class NanoDrum {
 			for( 0 => int y; y < 2; y++ ) {
 				nanoKontrol2.channelButtons[x][y+1] => int cc;
 				drumSequencer.trigger( x + 8*y ) * 127 => int offOrOn;
-				Utility.midiOut( 0xB0, cc, offOrOn, nanoMidiOut );
+				Utility.midiOut( 0xB0 + instrumentMidiOutChannel, cc, offOrOn, nanoMidiOut );
 			}
 		}
 	}

@@ -9,7 +9,8 @@ instrumentMidiOut.open( "IAC Driver IAC Bus 1" );
 internalClock.init();
 internalClock.start();
 internalClock.bpm( 120 );
+0 => int instrumentMidiOutChannel;
 
-nanoDrum.init( nanoMidiIn, nanoMidiOut, instrumentMidiOut, internalClock );
+nanoDrum.init( nanoMidiIn, nanoMidiOut, instrumentMidiOut, instrumentMidiOutChannel, internalClock );
 
 while( samp => now );
