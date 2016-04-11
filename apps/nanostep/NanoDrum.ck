@@ -1,6 +1,6 @@
 public class NanoDrum {
 	NanoKontrol2 nanoKontrol2;
-	DrumSequencer drumSequencer;
+	DrumSequencerMidi drumSequencer;
 	MidiIn nanoMidiIn;
 	MidiOut nanoMidiOut, instrumentMidiOut;
 	int instrumentMidiOutChannel;
