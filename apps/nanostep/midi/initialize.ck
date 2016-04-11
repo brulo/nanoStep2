@@ -1,0 +1,9 @@
+Machine.add(me.dir(-3) + "/utilities/Utility.ck");
+Machine.add(me.dir(-3) + "/clock/Clock.ck");
+Machine.add(me.dir(-3) + "/clock/InternalClock.ck");
+Machine.add(me.dir(-3) + "/sequencers/Sequencer.ck");
+Machine.add(me.dir(-3) + "/sequencers/DrumSequencer.ck");
+Machine.add(me.dir(-3) + "/sequencers/DrumSequencerMidi.ck");
+Machine.add(me.dir(-3) + "/controllers/nanokontrol/NanoKontrol2.ck");
+Machine.add(me.dir(-1) + "/NanoDrum.ck");
+Machine.add(me.dir()   + "/nanodrum_demo.ck");

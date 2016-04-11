@@ -1,12 +1,10 @@
-public class DrumSequencerMidi extends DrumSequencer {
+public class DrumSequencerAu extends DrumSequencer {
 
-	MidiOut midiOut;
-	int midiChannel;
+	AudioUnit audioUnit;
 
-	fun void init( Clock clock, MidiOut theMidiOut, int theMidiChannel ) {
+	fun void init( Clock clock, AudioUnit theAudioUnit ) {
 		_init( clock );
-		theMidiOut @=> midiOut;	
-		theMidiChannel => midiChannel;
+		theAudioUnit @=> audioUnit;
 		new int[_numberOfDrums][_numberOfPatterns][_numberOfSteps] @=> triggers;
 	}
 
@@ -16,7 +14,7 @@ public class DrumSequencerMidi extends DrumSequencer {
 				<<< "trigger for drum:", drumIndex >>>;
 				triggers[drumIndex][_patternPlaying][_currentStep] * 100 => int velocity;
 
-				Utility.midiOut( 0x90 + midiChannel, drumIndex + 36, velocity, midiOut );
+				audioUnit.send( 0x90, drumIndex + 36, velocity);
 				spork ~ gateShred( drumIndex + 36, velocity );
 			}
 		}
@@ -24,8 +22,7 @@ public class DrumSequencerMidi extends DrumSequencer {
 
 	fun void gateShred( int noteValue, int velocity ) {
 		100::ms => now;
-		Utility.midiOut( 0x80 + midiChannel, 
-			noteValue, velocity, midiOut );
+		audioUnit.send( 0x80, noteValue, velocity );
 	}
-
+	
 }

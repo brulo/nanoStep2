@@ -1,7 +1,8 @@
 // 8 voice drum sequencer. 
 public class DrumSequencer extends Sequencer {
 
-	int triggers[][][]; //[drum][sequence][step]	
+	//[drum][sequence][step]	
+	int triggers[][][];
 	8 => int _numberOfPatterns;
 	8 => int _numberOfDrums;
 	0 => int _selectedDrum;
