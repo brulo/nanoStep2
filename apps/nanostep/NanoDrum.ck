@@ -1,23 +1,18 @@
 public class NanoDrum {
 	NanoKontrol2 nanoKontrol2;
-	DrumSequencerMidi drumSequencer;
+	DrumSequencer drumSequencer;
 	MidiIn nanoMidiIn;
 	MidiOut nanoMidiOut, instrumentMidiOut;
 	int instrumentMidiOutChannel;
 	
-	fun void init( MidiIn theNanoMidiIn, MidiOut theNanoMidiOut, MidiOut theInstrumentMidiOut, int theInstrumentMidiOutChannel, Clock clock ) {
+	fun void init( DrumSequencer theDrumSequencer, MidiIn theNanoMidiIn, MidiOut theNanoMidiOut ) {
+		theDrumSequencer @=> drumSequencer;
 		theNanoMidiIn @=> nanoMidiIn;
 		theNanoMidiOut @=> nanoMidiOut;
-		theInstrumentMidiOut @=> instrumentMidiOut;
-		theInstrumentMidiOutChannel => instrumentMidiOutChannel;
 
-		drumSequencer.init( clock, instrumentMidiOut, theInstrumentMidiOutChannel );
-		drumSequencer.firstStep( 0 ); // not working?
-		drumSequencer.lastStep( 15 ); // not working?
-		<<<"drumSequencer last step:", drumSequencer.lastStep()>>>;
-		<<<"drumSequencer first step:", drumSequencer.firstStep()>>>;
+		drumSequencer.firstStep( 0 );
+		drumSequencer.lastStep( 15 );
 
-		// initialize nanoKontrol
 		nanoKontrol2.turnAllLedsOff( nanoMidiOut );
 		Utility.midiOut( 0xB0, nanoKontrol2.channelButtons[0][0], 127, nanoMidiOut );
 		Utility.midiOut( 0xB0, nanoKontrol2.rewindButton, 127, nanoMidiOut );
@@ -53,10 +48,12 @@ public class NanoDrum {
 							updateLed( midiMsg.data2, drumSequencer.trigger(column + 8) );
 						}
 					}
+					/*
 					else if( nanoKontrol2.isKnob(midiMsg.data2) ) {
 						8 * drumSequencer.selectedDrum() + nanoKontrol2.knobIndex( midiMsg.data2 ) => int knobCc;
 						Utility.midiOut( 0xB0, knobCc, midiMsg.data3, instrumentMidiOut );
 					}
+					*/
 					else if( nanoKontrol2.isTransportButton(midiMsg.data2) ) {
 						<<<"transport button", "">>>;
 						// pattern 1
@@ -99,7 +96,7 @@ public class NanoDrum {
 			for( 0 => int y; y < 2; y++ ) {
 				nanoKontrol2.channelButtons[x][y+1] => int cc;
 				drumSequencer.trigger( x + 8*y ) * 127 => int offOrOn;
-				Utility.midiOut( 0xB0 + instrumentMidiOutChannel, cc, offOrOn, nanoMidiOut );
+				Utility.midiOut( 0xB0, cc, offOrOn, nanoMidiOut );
 			}
 		}
 	}
