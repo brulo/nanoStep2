@@ -5,6 +5,7 @@ Machine.add(me.dir(-2) + "/clock/InternalClock.ck");
 Machine.add(me.dir(-2) + "/clock/Metronome.ck");
 Machine.add(me.dir(-2) + "/sequencers/Sequencer.ck");
 Machine.add(me.dir(-2) + "/sequencers/PitchSequencer.ck");
+Machine.add(me.dir(-2) + "/sequencers/PitchSequencerMidi.ck");
 Machine.add(me.dir(-2) + "/controllers/livid_base/LividBase.ck");
-Machine.add(me.dir(0)  + "LividStep.ck");
+Machine.add(me.dir(0)  + "LividPitch.ck");
 Machine.add(me.dir(0)  + "lividstep_demo.ck");
