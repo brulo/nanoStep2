@@ -1,8 +1,7 @@
 public class LividPitch {
 	LividBase base;
-	PitchSequencerMidi sequencers[2];
-	MidiOut midiOut;
-	Metronome metro;
+	PitchSequencerAu sequencers[2];
+	AudioUnit audioUnit;
 
 	"red" => string triggerLedColor;
 	"green" => string tieLedColor;
@@ -22,25 +21,14 @@ public class LividPitch {
 	-1 => int touchButtonHeld;
 	0 => int patternLengthChanged;
 
-	fun void init( Clock clock, string midiOutputName ) {
+	fun void init( Clock clock, AudioUnit theAudioUnit ) {
 		<<< "\n==== Initializing LividStep! ====", "\n" >>>;
-
-
-		// init midi
-		<<< "Initializing Sequencer Midi Output...", "" >>>;
-		if( midiOut.open(midiOutputName) ) {
-			<<< "	", "Success: opened", midiOut.name() >>>;
-		}
-		else {
-			<<< "	Failure: Unable to open", midiOutputName >>>;
-		}
-
+		theAudioUnit @=> audioUnit;
 
 		// init sequencers
 		for(int i; i < sequencers.cap(); i++) {
-			sequencers[i].___init(clock, midiOut, i);
+			sequencers[i].___init(clock, audioUnit);
 			//sequencers[i].patternLength(32);
-			i => sequencers[i].midiChannel;
 		}
 
 		// init base 
@@ -54,8 +42,9 @@ public class LividPitch {
 		// metronome for debugging
 		//metro.init(clock);
 
-		main();
 		<<< "\n==== LividStep initialized! ====", "\n" >>>;
+		
+		main();
 	}
 
 	fun void main() {

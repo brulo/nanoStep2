@@ -1,12 +1,21 @@
 LividPitch lividPitch;
 InternalClock internalClock;
+AudioUnit audioUnit => dac;
+
+AudioUnit.list() @=> string aus[];
+for(int i; i < aus.cap(); i++) {
+    chout <= aus[i] <= IO.newline();
+}
+
+audioUnit.open( "Phoscyon" );
+//:w
+audioUnit.display();
 
 internalClock.init();
 internalClock.start();
-internalClock.swingAmount(0.2);
+internalClock.swingAmount(0);
 internalClock.bpm(125);
 
-"IAC Driver IAC Bus 1" => string midiOutputName;
-lividPitch.init( internalClock, midiOutputName );
+lividPitch.init( internalClock, audioUnit );
 
 while( samp => now );
