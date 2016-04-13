@@ -18,7 +18,7 @@ public class NanoDrum {
 		Utility.midiOut( 0xB0, nanoKontrol2.rewindButton, 127, nanoMidiOut );
 		Utility.midiOut( 0xB0, nanoKontrol2.cycleButton, 127, nanoMidiOut );
 
-		main();
+		spork ~ main();
 	}
 
 	fun void main() {
