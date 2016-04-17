@@ -1,6 +1,8 @@
 // utilities
 Machine.add(me.dir(-2) + "/utilities/Utility.ck");
 Machine.add(me.dir(-2) + "/utilities/ModeQuantizer.ck");
+Machine.add(me.dir(-2) + "/utilities/ControlChangeToAuRouter.ck");
+Machine.add(me.dir(-2) + "/utilities/ControlChangeMultiplexer.ck");
 // clock
 Machine.add(me.dir(-2) + "/clock/Clock.ck");
 Machine.add(me.dir(-2) + "/clock/InternalClock.ck");

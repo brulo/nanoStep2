@@ -6,6 +6,7 @@ public class NanoDrum {
 	int instrumentMidiOutChannel;
 	
 	fun void init( DrumSequencer theDrumSequencer, MidiIn theNanoMidiIn, MidiOut theNanoMidiOut ) {
+		<<<"initializing nanodrum", "">>>;
 		theDrumSequencer @=> drumSequencer;
 		theNanoMidiIn @=> nanoMidiIn;
 		theNanoMidiOut @=> nanoMidiOut;
@@ -19,6 +20,7 @@ public class NanoDrum {
 		Utility.midiOut( 0xB0, nanoKontrol2.cycleButton, 127, nanoMidiOut );
 
 		spork ~ main();
+		<<<"nanodrum initialized", "">>>;
 	}
 
 	fun void main() {
