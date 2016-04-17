@@ -28,6 +28,7 @@ public class ControlChangeMultiplexer {
 					if( midiMessage.data2 == controlChanges[i] ) {
 						i + (currentPage * controlChanges.cap()) => int cc;
 						Utility.midiOut( 0xB0 + channelOut, cc, midiMessage.data3, midiOut );
+						<<<"CCMultiplexer:", 0xB0 + channelOut, cc, midiMessage.data3>>>;
 						break;
 					}
 				}

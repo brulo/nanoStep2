@@ -16,7 +16,7 @@ public class ControlChangeToAuRouter {
 			while( midiIn.recv(midiMessage) ) {
 				// if its a control change
 				if( midiMessage.data1 >= 0xB0 && midiMessage.data1 < 0xBF) {
-					<<<"routing msg">>>;
+					<<<"CCToAu", midiMessage.data1, midiMessage.data2, midiMessage.data3 >>>;
 					sendMidiToAu( midiMessage );
 				}
 			}
