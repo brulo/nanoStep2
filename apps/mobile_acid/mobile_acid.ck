@@ -24,14 +24,25 @@ drumazonReverbBus.gain( 0 );
 drumazon => Gain drumazonDelayBus => delay;
 drumazonDelayBus.gain( 0 );
 
+AudioUnit lush => limiter;
+lush => Gain lushReverbBus => reverb;
+lushReverbBus.gain( 0 );
+lush => Gain lushDelayBus => delay;
+lushDelayBus.gain( 0 );
+
 // midi 
-MidiIn nanoMidiIn, nanoMidiIn2, iacMidiIn, launchControlMidiIn;
-MidiOut nanoMidiOut, iacMidiOut;
+MidiIn nanoMidiIn, nanoMidiIn2, iacMidiIn, iacMidiIn2, launchControlMidiIn;
+MidiOut nanoMidiOut, iacMidiOut, iacMidiOut2, launchControlMidiOut;
 ControlChangeToAuRouter ccAuRouter;
 ControlChangeToAuRouter ccAuRouter2;
-ControlChangeMultiplexer ccMultiplexer;
+ControlChangeMultiplexer ccMultiplexer, ccMultiplexer2;
 NanoKontrol2 nanoKontrol2;
+LaunchControl launchControl;
+
 internalClockGui.init();
+internalClockGui.bpmSlider.value(135);
+internalClockGui.clock.start();
+internalClockGui.onButton.state(1);
 initMidi();
 initAudioUnits();
 initNanoDrum();
@@ -56,6 +67,15 @@ fun void initMidi() {
 		<<<"5">>>;
 	if( launchControlMidiIn.open( "Launch Control" ) )
 		<<<"6">>>;
+	if( launchControlMidiOut.open( "Launch Control" ) )
+		<<<"7">>>;
+	if(iacMidiIn2.open( "IAC Driver IAC Bus 2" ))
+		<<<"8">>>;
+	if(iacMidiOut2.open( "IAC Driver IAC Bus 2" ) ) 
+		<<<"9">>>;
+
+	launchControl.clearAllLeds( launchControlMidiOut );
+	Utility.midiOut(0x90, launchControl.buttons[0], 1, launchControlMidiOut);
 }
 
 fun void initAudioUnits() {
@@ -70,6 +90,9 @@ fun void initAudioUnits() {
 
 	phoscyon.open( "Phoscyon" );
 	phoscyon.display();
+
+	//lush.open( "LuSH-101" );
+	//lush.display();
 }
 
 fun void initNanoDrum() {
@@ -85,8 +108,16 @@ fun void initNanoDrumMultiplexer() {
 	0 => int multiplerChannelOut;
 	ccMultiplexer.init( controlChanges, nanoMidiIn, iacMidiOut, multiplerChannelOut );
 	ccAuRouter.init( drumazon, iacMidiIn );
-	ccAuRouter2.init( phoscyon, launchControlMidiIn );
-	spork ~ launchControlLoop();
+
+	int controlChanges2[launchControl.knobs.cap()];
+	for( int i; i < launchControl.knobs.cap(); i++ ) {
+		launchControl.knobs[i] => controlChanges2[i];
+	}
+	ccMultiplexer2.init( controlChanges2, launchControlMidiIn, iacMidiOut2, multiplerChannelOut );
+	ccAuRouter2.init( phoscyon, iacMidiIn2 );
+
+	spork ~ launchControlPageSelectLoop();
+	spork ~ launchControlIacLoop();
 }
 
 fun void drumKontrol1Loop() {
@@ -113,23 +144,48 @@ fun void drumKontrol1Loop() {
 	}
 }
 
-fun void launchControlLoop() {
+fun void launchControlIacLoop() {
 	MidiIn min;
 	MidiMsg msg;
 
-	if( min.open("Launch Control") )
-		<<<"opened launch control for loop">>>;
+	if( min.open("IAC Driver IAC Bus 2") )
+		<<<"opened iac bus 2 for multiplexed launch controller knobs">>>;
 
 	while( min => now ) {
 		while( min.recv(msg) ) {
-			<<< msg.data1, msg.data2, msg.data3 >>>;
-			//25
-			if( msg.data2 == 26 ) {
-				phoscyonDelayBus.gain( Utility.remap(msg.data3, 0, 126, 0, 1) );
-			}
-			else if( msg.data2 == 27 ) {
-				phoscyonReverbBus.gain( Utility.remap(msg.data3, 0, 126, 0, 1) );
+			<<<msg.data1, msg.data2, msg.data3>>>;
+			if( msg.data1 == 0xB0 ) {
+				if( msg.data2 == 5 ) {
+					phoscyonDelayBus.gain( Utility.remap(msg.data3, 0, 126, 0, 1) );
+				}
+				else if( msg.data2 == 6 ) {
+					phoscyonReverbBus.gain( Utility.remap(msg.data3, 0, 126, 0, 1) );
+				}
 			}
 		}
 	}
+}
+
+fun void launchControlPageSelectLoop() {
+	MidiIn min;
+	MidiMsg msg;
+
+	if( min.open("Launch Control") ) {
+		<<<"opened launch control for page select loop">>>;
+	}
+
+	while( min => now ) {
+		while( min.recv(msg) ) {
+			if( msg.data1 >= 0x90 && msg.data1 < 0x9F ) {
+				if( launchControl.isButton(msg) ) {
+					launchControl.buttonIndex(msg) => int buttonIndex;
+					// velocity of 1 is red
+					Utility.midiOut(msg.data1, launchControl.buttons[ccMultiplexer2.currentPage], 0, launchControlMidiOut);
+					ccMultiplexer2.changePage( buttonIndex );
+					Utility.midiOut(msg.data1, launchControl.buttons[buttonIndex], 1, launchControlMidiOut);
+				}
+			}
+		}
+	}
+
 }

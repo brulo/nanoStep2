@@ -38,6 +38,7 @@ public class ControlChangeMultiplexer {
 
 	fun void changePage( int page ) {
 		Utility.clampi( page, 0, MAX_NUMBER_OF_PAGES ) => page;
+		<<<"multiplexer page:", page, "selected">>>;
 		page => currentPage;
 	}
 	
