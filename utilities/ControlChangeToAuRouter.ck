@@ -6,26 +6,20 @@ public class ControlChangeToAuRouter {
 	fun void init( AudioUnit theAudioUnit, MidiIn theMidiIn ) {
 		theAudioUnit @=> audioUnit;
 		theMidiIn @=> midiIn;
-
 		spork ~ main();
 	}
 
 	fun void main() {
-		MidiMsg midiMessage;
+		MidiMsg msg;
 		while( midiIn => now ) {
-			while( midiIn.recv(midiMessage) ) {
+			while( midiIn.recv(msg) ) {
 				// if its a control change
-				if( midiMessage.data1 >= 0xB0 && midiMessage.data1 < 0xBF) {
-					<<<"CCToAu", midiMessage.data1, midiMessage.data2, midiMessage.data3 >>>;
-					sendMidiToAu( midiMessage );
+				if( msg.data1 >= 0xB0 && msg.data1 < 0xBF) {
+					<<<"CCToAu", msg.data1, msg.data2, msg.data3 >>>;
+					audioUnit.send( msg.data1, msg.data2, msg.data3 );
 				}
 			}
 		}
-	}
-
-	fun void sendMidiToAu( MidiMsg msg ) {
-		<<< msg.data1, msg.data2, msg.data3 >>>;
-		audioUnit.send( msg.data1, msg.data2, msg.data3 );
 	}
 	
 }

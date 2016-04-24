@@ -19,5 +19,7 @@ Machine.add(me.dir(-1)  + "/livid_pitch_sequencer/LividPitch.ck");
 //nanoStep
 Machine.add(me.dir(-2) + "/controllers/nanokontrol/NanoKontrol2.ck");
 Machine.add(me.dir(-1) + "/nanostep/NanoDrum.ck");
+// sound stuff
+Machine.add(me.dir(-2) + "/synth_components/FeedbackDelay.ck");
 // acieeeeeeeeeeeed
 Machine.add(me.dir(0)  + "mobile_acid.ck");

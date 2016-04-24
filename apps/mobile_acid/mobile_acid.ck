@@ -1,23 +1,42 @@
+// custom stuff
 InternalClockGui internalClockGui;
 LividPitch lividPitch;
-AudioUnit phoscyon => dac;
-AudioUnit drumazon => dac;
-DrumSequencerAu drumSequencer;
 NanoDrum nanoDrum;
+DrumSequencerAu drumSequencer;
+// ugens
+Dyno limiter => dac;
+limiter.limit();
+
+JCRev reverb => limiter;
+reverb.mix( 1 );
+
+FeedbackDelay delay => limiter;
+
+AudioUnit phoscyon => limiter;
+phoscyon => Gain phoscyonReverbBus => reverb;
+phoscyonReverbBus.gain( 0 );
+phoscyon => Gain phoscyonDelayBus => delay;
+phoscyonDelayBus.gain( 0 );
+
+AudioUnit drumazon => limiter;
+drumazon => Gain drumazonReverbBus => reverb;
+drumazonReverbBus.gain( 0 );
+drumazon => Gain drumazonDelayBus => delay;
+drumazonDelayBus.gain( 0 );
+
+// midi 
 MidiIn nanoMidiIn, nanoMidiIn2, iacMidiIn, launchControlMidiIn;
 MidiOut nanoMidiOut, iacMidiOut;
 ControlChangeToAuRouter ccAuRouter;
 ControlChangeToAuRouter ccAuRouter2;
 ControlChangeMultiplexer ccMultiplexer;
 NanoKontrol2 nanoKontrol2;
-MidiIn xxxmin;
-
 internalClockGui.init();
 initMidi();
 initAudioUnits();
 initNanoDrum();
 initNanoDrumMultiplexer();
-spork ~ mapDrumSelectButtonsToCCMultiplexer();
+spork ~ drumKontrol1Loop();
 lividPitch.init( internalClockGui.clock, phoscyon );
 
 while(samp => now);
@@ -34,9 +53,9 @@ fun void initMidi() {
 	if(iacMidiIn.open( "IAC Driver IAC Bus 1" ))
 		<<<"4">>>;
 	if(iacMidiOut.open( "IAC Driver IAC Bus 1" ) ) 
-		<<<5>>>;
+		<<<"5">>>;
 	if( launchControlMidiIn.open( "Launch Control" ) )
-		<<<6>>>;
+		<<<"6">>>;
 }
 
 fun void initAudioUnits() {
@@ -67,9 +86,10 @@ fun void initNanoDrumMultiplexer() {
 	ccMultiplexer.init( controlChanges, nanoMidiIn, iacMidiOut, multiplerChannelOut );
 	ccAuRouter.init( drumazon, iacMidiIn );
 	ccAuRouter2.init( phoscyon, launchControlMidiIn );
+	spork ~ launchControlLoop();
 }
 
-fun void mapDrumSelectButtonsToCCMultiplexer() {
+fun void drumKontrol1Loop() {
 	MidiIn min;
 	MidiMsg msg;
 
@@ -88,6 +108,27 @@ fun void mapDrumSelectButtonsToCCMultiplexer() {
 						ccMultiplexer.changePage( column );
 					}
 				}
+			}
+		}
+	}
+}
+
+fun void launchControlLoop() {
+	MidiIn min;
+	MidiMsg msg;
+
+	if( min.open("Launch Control") )
+		<<<"opened launch control for loop">>>;
+
+	while( min => now ) {
+		while( min.recv(msg) ) {
+			<<< msg.data1, msg.data2, msg.data3 >>>;
+			//25
+			if( msg.data2 == 26 ) {
+				phoscyonDelayBus.gain( Utility.remap(msg.data3, 0, 126, 0, 1) );
+			}
+			else if( msg.data2 == 27 ) {
+				phoscyonReverbBus.gain( Utility.remap(msg.data3, 0, 126, 0, 1) );
 			}
 		}
 	}
