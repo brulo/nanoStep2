@@ -7,7 +7,7 @@ DrumSequencerAu drumSequencer;
 Dyno limiter => dac;
 limiter.limit();
 
-JCRev reverb => limiter;
+NRev reverb => limiter;
 reverb.mix( 1 );
 
 FeedbackDelay delay => limiter;
@@ -101,8 +101,8 @@ fun void initNanoDrum() {
 }
 
 fun void initNanoDrumMultiplexer() {
-	int controlChanges[nanoKontrol2.knobs.cap()];
-	for( 0 => int i; i < nanoKontrol2.knobs.cap(); i++ ) {
+	int controlChanges[5];
+	for( 0 => int i; i < 5; i++ ) {
 		nanoKontrol2.knobs[i] => controlChanges[i];
 	}
 	0 => int multiplerChannelOut;
@@ -118,6 +118,7 @@ fun void initNanoDrumMultiplexer() {
 
 	spork ~ launchControlPageSelectLoop();
 	spork ~ launchControlIacLoop();
+	spork ~ nanoKontrolLoop();
 }
 
 fun void drumKontrol1Loop() {
@@ -144,6 +145,28 @@ fun void drumKontrol1Loop() {
 	}
 }
 
+fun void nanoKontrolLoop() {
+	MidiIn min;
+	MidiMsg msg;
+
+	if( min.open("drumKONTROL1 SLIDER/KNOB") ) {
+		<<<"opened drumkontrol1 opened for loop", "">>>;
+	}
+
+	while( min => now ) {
+		while( min.recv(msg) ) {
+			if( msg.data1 == 0xB0 ) {
+				if( nanoKontrol2.knobIndex(msg.data2) == 5) {
+					drumazonDelayBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
+				}
+				else if( nanoKontrol2.knobIndex(msg.data2) == 6) {
+					drumazonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
+				}
+			}
+		}
+	}
+}
+
 fun void launchControlIacLoop() {
 	MidiIn min;
 	MidiMsg msg;
@@ -156,10 +179,10 @@ fun void launchControlIacLoop() {
 			<<<msg.data1, msg.data2, msg.data3>>>;
 			if( msg.data1 == 0xB0 ) {
 				if( msg.data2 == 5 ) {
-					phoscyonDelayBus.gain( Utility.remap(msg.data3, 0, 126, 0, 1) );
+					phoscyonDelayBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
 				}
 				else if( msg.data2 == 6 ) {
-					phoscyonReverbBus.gain( Utility.remap(msg.data3, 0, 126, 0, 1) );
+					phoscyonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
 				}
 			}
 		}

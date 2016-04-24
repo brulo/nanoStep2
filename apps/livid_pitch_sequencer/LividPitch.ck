@@ -74,7 +74,8 @@ public class LividPitch {
 					Utility.remap(msg.data3, 0, 127, 0, 7));
 		}
 		else {
-			sequencers[sequencerIndex].stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
+			//sequencers[sequencerIndex].stepLength(Utility.remap(msg.data3, 0, 127, 0, 1));
+			sequencers[sequencerIndex].lastStep(Utility.remap(msg.data3, 0, 127, 0, 7) $ int);
 		}
 		base.setFaderLed(msg);
 	}
