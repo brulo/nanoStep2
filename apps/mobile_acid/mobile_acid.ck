@@ -18,6 +18,12 @@ phoscyonReverbBus.gain( 0 );
 phoscyon => Gain phoscyonDelayBus => delay;
 phoscyonDelayBus.gain( 0 );
 
+AudioUnit phoscyon2 => limiter;
+phoscyon2 => Gain phoscyon2ReverbBus => reverb;
+phoscyon2ReverbBus.gain( 0 );
+phoscyon2 => Gain phoscyon2DelayBus => delay;
+phoscyon2DelayBus.gain( 0 );
+
 AudioUnit drumazon => limiter;
 drumazon => Gain drumazonReverbBus => reverb;
 drumazonReverbBus.gain( 0 );
@@ -35,6 +41,7 @@ MidiIn nanoMidiIn, nanoMidiIn2, iacMidiIn, iacMidiIn2, launchControlMidiIn;
 MidiOut nanoMidiOut, iacMidiOut, iacMidiOut2, launchControlMidiOut;
 ControlChangeToAuRouter ccAuRouter;
 ControlChangeToAuRouter ccAuRouter2;
+ControlChangeToAuRouter ccAuRouter3;
 ControlChangeMultiplexer ccMultiplexer, ccMultiplexer2;
 NanoKontrol2 nanoKontrol2;
 LaunchControl launchControl;
@@ -91,6 +98,9 @@ fun void initAudioUnits() {
 	phoscyon.open( "Phoscyon" );
 	phoscyon.display();
 
+	phoscyon2.open( "Phoscyon" );
+	phoscyon2.display();
+	
 	//lush.open( "LuSH-101" );
 	//lush.display();
 }
@@ -115,6 +125,7 @@ fun void initNanoDrumMultiplexer() {
 	}
 	ccMultiplexer2.init( controlChanges2, launchControlMidiIn, iacMidiOut2, multiplerChannelOut );
 	ccAuRouter2.init( phoscyon, iacMidiIn2 );
+	ccAuRouter3.init( phoscyon2, iacMidiIn2 );
 
 	spork ~ launchControlPageSelectLoop();
 	spork ~ launchControlIacLoop();
