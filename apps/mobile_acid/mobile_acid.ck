@@ -55,7 +55,6 @@ initAudioUnits();
 initNanoDrum();
 initNanoDrumMultiplexer();
 spork ~ drumKontrol1Loop();
-lividPitch.init( internalClockGui.clock, phoscyon );
 
 while(samp => now);
 
@@ -86,6 +85,7 @@ fun void initMidi() {
 }
 
 fun void initAudioUnits() {
+
 	// probe audio units
 	AudioUnit.list() @=> string aus[];
 	for(int i; i < aus.cap(); i++) {
@@ -101,6 +101,12 @@ fun void initAudioUnits() {
 	phoscyon2.open( "Phoscyon" );
 	phoscyon2.display();
 	
+	AudioUnit audioUnits[1];
+	phoscyon => audioUnits[0];
+	lividPitch.init();
+	lividPitch.sequencers[0].___init( internalClockGui.clock, phoscyon );
+	lividPitch.sequencers[1].___init( internalClockGui.clock, phoscyon2 );
+
 	//lush.open( "LuSH-101" );
 	//lush.display();
 }

@@ -1,6 +1,6 @@
 public class LividPitch {
 	LividBase base;
-	PitchSequencerAu sequencers[2];
+	PitchSequencerAu sequencers[4];
 	AudioUnit audioUnit;
 
 	"red" => string triggerLedColor;
@@ -21,30 +21,19 @@ public class LividPitch {
 	-1 => int touchButtonHeld;
 	0 => int patternLengthChanged;
 
-	fun void init( Clock clock, AudioUnit theAudioUnit ) {
-		<<< "\n==== Initializing LividStep! ====", "\n" >>>;
-		theAudioUnit @=> audioUnit;
+	fun void init() {
+		<<< "Initializing LividPitch...", "" >>>;
+		initBase();		
+		spork ~ main();
+	}
 
-		// init sequencers
-		for(int i; i < sequencers.cap(); i++) {
-			sequencers[i].___init(clock, audioUnit);
-			//sequencers[i].patternLength(32);
-		}
-
-		// init base 
+	fun void initBase() {
 		base.init();
 		base.setButtonLed(0, "left", "blue");
 		base.setButtonLed(0, "right", "red");
 		base.setButtonLed(4, "left", "magenta");
 		base.setButtonLed(4, "right", "magenta");
-		base.setTouchButtonLed(pageIndex, "center", 
-				pageSelectLedColor);
-		// metronome for debugging
-		//metro.init(clock);
-
-		<<< "\n==== LividStep initialized! ====", "\n" >>>;
-		
-		main();
+		base.setTouchButtonLed(pageIndex, "center", pageSelectLedColor);
 	}
 
 	fun void main() {
