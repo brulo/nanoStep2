@@ -107,6 +107,8 @@ fun void initAudioUnits() {
 	lividPitch.sequencers[0].___init( internalClockGui.clock, phoscyon );
 	lividPitch.sequencers[1].___init( internalClockGui.clock, phoscyon2 );
 	lividPitch.sequencers[2].___init( internalClockGui.clock, lush );
+
+	lividPitch.sequencers[1].octave( 5 );
 }
 
 fun void initNanoDrum() {
