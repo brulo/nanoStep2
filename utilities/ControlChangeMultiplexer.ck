@@ -11,9 +11,9 @@ public class ControlChangeMultiplexer {
 	0 => int currentPage;
 	32 => int MAX_NUMBER_OF_PAGES;
 
-	fun void init( int theControlChanges[], MidiIn theMidiIn, MidiOut theMidiOut, int theChannelOut ) {
+	fun void init( int theControlChanges[], string midiInName, MidiOut theMidiOut, int theChannelOut ) {
 		theControlChanges @=> controlChanges;
-		theMidiIn @=> midiIn;
+		midiIn.open( midiInName );
 		theMidiOut @=> midiOut;
 		theChannelOut => channelOut;
 

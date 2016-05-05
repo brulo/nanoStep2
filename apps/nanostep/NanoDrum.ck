@@ -5,10 +5,12 @@ public class NanoDrum {
 	MidiOut nanoMidiOut, instrumentMidiOut;
 	int instrumentMidiOutChannel;
 	
-	fun void init( DrumSequencer theDrumSequencer, MidiIn theNanoMidiIn, MidiOut theNanoMidiOut ) {
+	fun void init( DrumSequencer theDrumSequencer, string midiInName, MidiOut theNanoMidiOut ) {
 		<<<"initializing nanodrum", "">>>;
 		theDrumSequencer @=> drumSequencer;
-		theNanoMidiIn @=> nanoMidiIn;
+		if( nanoMidiIn.open(midiInName) ) {
+			<<<"NanoDrum: opened midi in device", midiInName, "successfully">>>;
+		}
 		theNanoMidiOut @=> nanoMidiOut;
 
 		drumSequencer.firstStep( 0 );
