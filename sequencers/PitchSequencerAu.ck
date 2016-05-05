@@ -39,8 +39,8 @@ public class PitchSequencerAu extends PitchSequencer {
 			}
 			// step is gated 
 			else {
-				<<<"new note on", "">>>;
-				<<<currentNote>>>;
+				//<<<"new note on", "">>>;
+				//<<<currentNote>>>;
 				audioUnit.send( 0x90, currentNote, _velocity );
 				spork ~ noteOffAfterStepDur(currentNote, _velocity);
 

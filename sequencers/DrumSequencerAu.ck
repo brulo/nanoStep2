@@ -11,7 +11,7 @@ public class DrumSequencerAu extends DrumSequencer {
 	fun void doStep() {
 		for( 0 => int drumIndex; drumIndex < _numberOfDrums; drumIndex++ ) {
 			if( triggers[drumIndex][_patternPlaying][_currentStep] > 0 ) {
-				<<< "trigger for drum:", drumIndex >>>;
+				//<<< "trigger for drum:", drumIndex >>>;
 				triggers[drumIndex][_patternPlaying][_currentStep] * 100 => int velocity;
 
 				audioUnit.send( 0x90, drumIndex + 36, velocity);

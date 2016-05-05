@@ -67,16 +67,16 @@ while(samp => now);
 
 fun void initMidi() {
 	if(nanoMidiOut.open( "drumKONTROL1 CTRL" )) {
-		<<< "MobileAcid: opened midiout device", nanoMidiOut.name, "successfully" >>>;
+		//<<< "MobileAcid: opened midiout device", nanoMidiOut.name, "successfully" >>>;
 	}
 	if( launchControlMidiOut.open( "Launch Control" ) ) {
-		<<< "MobileAcid: opened midiout device", launchControlMidiOut.name, "successfully" >>>;
+		//<<< "MobileAcid: opened midiout device", launchControlMidiOut.name, "successfully" >>>;
 	}
 	if(iacMidiOut.open( "IAC Driver IAC Bus 1" ) ) {
-		<<< "MobileAcid: opened midiout device", iacMidiOut.name, "successfully" >>>;
+		//<<< "MobileAcid: opened midiout device", iacMidiOut.name, "successfully" >>>;
 	}
 	if(iacMidiOut2.open( "IAC Driver IAC Bus 2" ) ) {
-		<<< "MobileAcid: opened midiout device", iacMidiOut2.name, "successfully" >>>;
+		//<<< "MobileAcid: opened midiout device", iacMidiOut2.name, "successfully" >>>;
 	}
 
 	launchControl.clearAllLeds( launchControlMidiOut );
@@ -152,7 +152,7 @@ fun void drumKontrol1Loop() {
 				if( nanoKontrol2.isChannelButton(msg.data2) ) {
 					if( nanoKontrol2.channelButtonRow(msg.data2) == 0 ) {
 						nanoKontrol2.channelButtonColumn( msg.data2 ) => int column;
-						<<<"changing drum multiplexer to drum num", column >>>;
+						//<<<"changing drum multiplexer to drum num", column >>>;
 						ccMultiplexer.changePage( column );
 					}
 				}

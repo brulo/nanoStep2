@@ -28,7 +28,7 @@ public class ControlChangeMultiplexer {
 					if( midiMessage.data2 == controlChanges[i] ) {
 						i + (currentPage * controlChanges.cap()) => int cc;
 						Utility.midiOut( 0xB0 + channelOut, cc, midiMessage.data3, midiOut );
-						<<<"CCMultiplexer:", 0xB0 + channelOut, cc, midiMessage.data3>>>;
+						//<<<"CCMultiplexer:", 0xB0 + channelOut, cc, midiMessage.data3>>>;
 						break;
 					}
 				}
@@ -38,7 +38,7 @@ public class ControlChangeMultiplexer {
 
 	fun void changePage( int page ) {
 		Utility.clampi( page, 0, MAX_NUMBER_OF_PAGES ) => page;
-		<<<"multiplexer page:", page, "selected">>>;
+		//<<<"multiplexer page:", page, "selected">>>;
 		page => currentPage;
 	}
 	

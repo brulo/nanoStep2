@@ -35,7 +35,7 @@ public class NanoDrum {
 						nanoKontrol2.channelButtonRow( midiMsg.data2 ) => int row;
 						nanoKontrol2.channelButtonColumn( midiMsg.data2 ) => int column;
 						if( row == 0) {
-							<<<"selcted drum", column>>>;
+							//<<<"selcted drum", column>>>;
 							updateLed( nanoKontrol2.channelButtons[drumSequencer.selectedDrum()][0], 0 );
 							drumSequencer.selectedDrum( column );
 							updateLed( midiMsg.data2, 1 );
