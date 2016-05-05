@@ -130,7 +130,7 @@ fun void initNanoDrumMultiplexer() {
 	ccMultiplexer2.init( controlChanges2, launchControlMidiInName, iacMidiOut2, multiplerChannelOut );
 	ccAuRouter2.init( phoscyon, iacMidiIn2Name );
 	ccAuRouter3.init( phoscyon2, iacMidiIn2Name );
-	ccAuRouter3.init( lush, iacMidiIn2Name );
+	ccAuRouter4.init( lush, iacMidiIn2Name );
 
 	spork ~ launchControlPageSelectLoop();
 	spork ~ launchControlIacLoop();
