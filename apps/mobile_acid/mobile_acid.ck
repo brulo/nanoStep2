@@ -13,31 +13,31 @@ limiter.limit();
 NRev reverb => limiter;
 reverb.mix( 1 );
 
-FeedbackDelay delay => limiter;
+//FeedbackDelay delay => limiter;
 
 AudioUnit phoscyon => limiter;
 phoscyon => Gain phoscyonReverbBus => reverb;
 phoscyonReverbBus.gain( 0 );
-phoscyon => Gain phoscyonDelayBus => delay;
-phoscyonDelayBus.gain( 0 );
+//phoscyon => Gain phoscyonDelayBus => delay;
+//phoscyonDelayBus.gain( 0 );
 
 AudioUnit phoscyon2 => limiter;
 phoscyon2 => Gain phoscyon2ReverbBus => reverb;
 phoscyon2ReverbBus.gain( 0 );
-phoscyon2 => Gain phoscyon2DelayBus => delay;
-phoscyon2DelayBus.gain( 0 );
+//phoscyon2 => Gain phoscyon2DelayBus => delay;
+//phoscyon2DelayBus.gain( 0 );
 
-AudioUnit drumazon => limiter;
-drumazon => Gain drumazonReverbBus => reverb;
+AudioUnit drumazon => Gain drumazonBus => limiter;
+drumazonBus => Gain drumazonReverbBus => reverb;
 drumazonReverbBus.gain( 0 );
-drumazon => Gain drumazonDelayBus => delay;
-drumazonDelayBus.gain( 0 );
+//drumazon => Gain drumazonDelayBus => delay;
+//drumazonDelayBus.gain( 0 );
 
 AudioUnit lush => limiter;
 lush => Gain lushReverbBus => reverb;
 lushReverbBus.gain( 0 );
-lush => Gain lushDelayBus => delay;
-lushDelayBus.gain( 0 );
+//lush => Gain lushDelayBus => delay;
+//lushDelayBus.gain( 0 );
 
 // midi 
 "drumKONTROL1 SLIDER/KNOB" => string nanoMidiInName;
@@ -165,16 +165,21 @@ fun void nanoKontrolLoop() {
 	MidiIn min;
 	MidiMsg msg;
 
-	min.open( "drumKONTROL1 SLIDER/KNOB" );
+	min.open( nanoMidiInName );
 
 	while( min => now ) {
 		while( min.recv(msg) ) {
 			if( msg.data1 == 0xB0 ) {
+				/*	
 				if( nanoKontrol2.knobIndex(msg.data2) == 5 ) {
 					drumazonDelayBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
 				}
-				else if( nanoKontrol2.knobIndex(msg.data2) == 6) {
-					drumazonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
+				*/
+				if( nanoKontrol2.knobIndex(msg.data2) == 6) {
+					drumazonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
+				}
+				else if( nanoKontrol2.knobIndex(msg.data2) == 7) {
+					drumazonBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
 				}
 			}
 		}
@@ -191,10 +196,23 @@ fun void launchControlIacLoop() {
 		while( min.recv(msg) ) {
 			if( msg.data1 == 0xB0 ) {
 				if( msg.data2 == 5 ) {
-					phoscyonDelayBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
+					//phoscyonDelayBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
+					lividPitch.sequencers[0].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
 				}
 				else if( msg.data2 == 6 ) {
-					phoscyonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
+					phoscyonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
+				}
+				else if( msg.data2 == 13 ) {
+					lividPitch.sequencers[1].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
+				}
+				else if( msg.data2 == 14 ) {
+					phoscyon2ReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
+				}
+				else if( msg.data2 == 21 ) {
+					lividPitch.sequencers[2].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
+				}
+				else if( msg.data2 == 22 ) {
+					lushReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
 				}
 			}
 		}
