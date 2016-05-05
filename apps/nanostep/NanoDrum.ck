@@ -42,12 +42,12 @@ public class NanoDrum {
 							updateTriggerButtonLeds();
 						}
 						else if( row == 1 ) {
-							<<<"step", column>>>;
+							//<<<"step", column>>>;
 							drumSequencer.trigger( column, !drumSequencer.trigger(column) );
 							updateLed( midiMsg.data2, drumSequencer.trigger(column) );
 						}
 						else if( row == 2 ) {
-							<<<"step", column + 8>>>;
+							//<<<"step", column + 8>>>;
 							drumSequencer.trigger( column + 8, !drumSequencer.trigger(column + 8) );
 							updateLed( midiMsg.data2, drumSequencer.trigger(column + 8) );
 						}
@@ -59,15 +59,15 @@ public class NanoDrum {
 					}
 					*/
 					else if( nanoKontrol2.isTransportButton(midiMsg.data2) ) {
-						<<<"transport button", "">>>;
+						//<<<"transport button", "">>>;
 						// pattern 1
 						if( midiMsg.data2 == nanoKontrol2.rewindButton ) {
-							<<< "rewind button", "" >>>;
+							//<<< "rewind button", "" >>>;
 							patternSelectorButtonAction( 0, midiMsg.data2 );
 						}  // pattern 2
 						else if( midiMsg.data2 == nanoKontrol2.fastForwardButton ) {
 							patternSelectorButtonAction( 1, midiMsg.data2 );
-							<<< "fastforward button", "" >>>;
+							//<<< "fastforward button", "" >>>;
 						}
 						else if( midiMsg.data2 == nanoKontrol2.cycleButton ) {
 							drumSequencer.patternPlaying( drumSequencer.patternEditing() );
