@@ -58,7 +58,6 @@ initMidi();
 initAudioUnits();
 initNanoDrum();
 initNanoDrumMultiplexer();
-spork ~ drumKontrol1Loop();
 
 while(samp => now);
 
@@ -66,18 +65,10 @@ while(samp => now);
 // * Init Functions * 
 
 fun void initMidi() {
-	if(nanoMidiOut.open( "drumKONTROL1 CTRL" )) {
-		//<<< "MobileAcid: opened midiout device", nanoMidiOut.name, "successfully" >>>;
-	}
-	if( launchControlMidiOut.open( "Launch Control" ) ) {
-		//<<< "MobileAcid: opened midiout device", launchControlMidiOut.name, "successfully" >>>;
-	}
-	if(iacMidiOut.open( "IAC Driver IAC Bus 1" ) ) {
-		//<<< "MobileAcid: opened midiout device", iacMidiOut.name, "successfully" >>>;
-	}
-	if(iacMidiOut2.open( "IAC Driver IAC Bus 2" ) ) {
-		//<<< "MobileAcid: opened midiout device", iacMidiOut2.name, "successfully" >>>;
-	}
+	nanoMidiOut.open( "drumKONTROL1 CTRL" );
+	launchControlMidiOut.open( "Launch Control" );
+	iacMidiOut.open( "IAC Driver IAC Bus 1" );
+	iacMidiOut2.open( "IAC Driver IAC Bus 2" );
 
 	launchControl.clearAllLeds( launchControlMidiOut );
 	Utility.midiOut( 0x90, launchControl.buttons[0], 1, launchControlMidiOut );
@@ -139,39 +130,18 @@ fun void initNanoDrumMultiplexer() {
 	spork ~ nanoKontrolLoop();
 }
 
-fun void drumKontrol1Loop() {
+fun void nanoKontrolLoop() {
 	MidiIn min;
 	MidiMsg msg;
-
 	min.open( nanoMidiInName );
+	
 	while( min => now ) {
 		while( min.recv(msg) ) {
 			if( nanoKontrol2.isFader(msg.data2) ) {
 				64 +=> msg.data2;
 				iacMidiOut.send( msg );
 			}
-			else if( msg.data3 == 127 ) {
-				if( nanoKontrol2.isChannelButton(msg.data2) ) {
-					if( nanoKontrol2.channelButtonRow(msg.data2) == 0 ) {
-						nanoKontrol2.channelButtonColumn( msg.data2 ) => int column;
-						//<<<"changing drum multiplexer to drum num", column >>>;
-						ccMultiplexer.changePage( column );
-					}
-				}
-			}
-		}
-	}
-}
-
-fun void nanoKontrolLoop() {
-	MidiIn min;
-	MidiMsg msg;
-
-	min.open( nanoMidiInName );
-
-	while( min => now ) {
-		while( min.recv(msg) ) {
-			if( msg.data1 == 0xB0 ) {
+			else if( nanoKontrol2.isKnob(msg.data2) ) {
 				/*	
 				if( nanoKontrol2.knobIndex(msg.data2) == 5 ) {
 					drumazonDelayBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
@@ -184,6 +154,15 @@ fun void nanoKontrolLoop() {
 					drumazonBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
 				}
 			}
+			else if( nanoKontrol2.isChannelButton(msg.data2) ) {
+				if( msg.data3 == 127 ) {
+					if( nanoKontrol2.channelButtonRow(msg.data2) == 0 ) {
+						nanoKontrol2.channelButtonColumn( msg.data2 ) => int column;
+						//<<<"changing drum multiplexer to drum num", column >>>;
+						ccMultiplexer.changePage( column );
+					}
+				}
+			}
 		}
 	}
 }
@@ -191,7 +170,6 @@ fun void nanoKontrolLoop() {
 fun void launchControlIacLoop() {
 	MidiIn min;
 	MidiMsg msg;
-
 	min.open( iacMidiIn2Name );
 
 	while( min => now ) {
@@ -224,7 +202,6 @@ fun void launchControlIacLoop() {
 fun void launchControlPageSelectLoop() {
 	MidiIn min;
 	MidiMsg msg;
-
 	min.open( launchControlMidiInName );
 
 	while( min => now ) {
