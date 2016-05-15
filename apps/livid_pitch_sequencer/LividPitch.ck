@@ -23,8 +23,18 @@ public class LividPitch {
 
 	fun void init() {
 		<<< "Initializing LividPitch...", "" >>>;
+		
 		initBase();		
+
+		spork ~ chaseLedLoop();
 		spork ~ main();
+	}
+
+	fun void chaseLedLoop() {
+		while( sequencers[0].clock.step => now ) {
+			base.setTouchButtonLed( sequencers[0]._previousStep % 8, "center", "off" );
+			base.setTouchButtonLed( sequencers[0]._currentStep % 8, "center", "red" );
+		}
 	}
 
 	fun void initBase() {

@@ -4,13 +4,13 @@
 public class Sequencer {
 	Clock clock;
 	Shred clockShred;
-	int _numberOfSteps, _currentStep, _patternLength;
+	int _numberOfSteps, _currentStep, _previousStep, _patternLength;
 	int _firstStep, _lastStep; // controls pattern length 
 
 	fun void _init(Clock theClock) {
 		theClock @=> clock;
 
-		0  => _currentStep;
+		0  => _currentStep => _previousStep;
 		64 => _numberOfSteps;
 		0 => _firstStep;
 		7 => _lastStep;
@@ -21,6 +21,7 @@ public class Sequencer {
 
 	fun void clockLoop() { 
 		while(clock.step => now) {
+			_currentStep => _previousStep;
 			((clock.currentStep % _numberOfSteps) + _firstStep) % _patternLength => _currentStep;
 			doStep();
 		}
