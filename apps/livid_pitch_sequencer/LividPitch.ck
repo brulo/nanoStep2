@@ -85,7 +85,7 @@ public class LividPitch {
 				sequencers[sequencerIndex].patternPlaying(buttonIndex);
 			}
 		}
-		else if(buttonIndex < 8) {
+		else if(buttonIndex < 7) {
 			changeSequencer(buttonIndex - 4);
 		}
 	}
