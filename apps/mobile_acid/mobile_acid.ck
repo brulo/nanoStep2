@@ -1,10 +1,21 @@
-// custom stuff
+// mobile acid techno jambox software
+// March 2016
+
 InternalClockGui internalClockGui;
 LividPitch lividPitch;
 NanoKontrol2 nanoKontrol2;
 NanoDrum nanoDrum;
 DrumSequencerAu drumSequencer;
 LaunchControl launchControl;
+ControlChangeToAuRouter ccAuRouter, ccAuRouter2, ccAuRouter3, ccAuRouter4;
+ControlChangeMultiplexer ccMultiplexer, ccMultiplexer2;
+
+// midi 
+"drumKONTROL1 SLIDER/KNOB" => string nanoMidiInName;
+"IAC Driver IAC Bus 1" => string iacMidiInName;
+"IAC Driver IAC Bus 2" => string iacMidiIn2Name;
+"Launch Control" => string launchControlMidiInName;
+MidiOut nanoMidiOut, iacMidiOut, iacMidiOut2, launchControlMidiOut;
 
 // ugens
 Dyno limiter => dac;
@@ -39,30 +50,35 @@ lushReverbBus.gain( 0 );
 //lush => Gain lushDelayBus => delay;
 //lushDelayBus.gain( 0 );
 
-// midi 
-"drumKONTROL1 SLIDER/KNOB" => string nanoMidiInName;
-"IAC Driver IAC Bus 1" => string iacMidiInName;
-"IAC Driver IAC Bus 2" => string iacMidiIn2Name;
-"Launch Control" => string launchControlMidiInName;
-MidiOut nanoMidiOut, iacMidiOut, iacMidiOut2, launchControlMidiOut;
+main();
+while( 1::week => now );
 
-ControlChangeToAuRouter ccAuRouter, ccAuRouter2, ccAuRouter3, ccAuRouter4;
-ControlChangeMultiplexer ccMultiplexer, ccMultiplexer2;
+fun void main() {
+	probeAudioUnits();
+	initClock();
+	initMidi();
+	initLividPitch();
+	initNanoDrum();
+	initNanoDrumMultiplexer();
 
-// initialize
-internalClockGui.init();
-internalClockGui.bpmSlider.value(135);
-internalClockGui.clock.start();
-internalClockGui.onButton.state(1);
-initMidi();
-initAudioUnits();
-initNanoDrum();
-initNanoDrumMultiplexer();
+	spork ~ launchControlPageSelectLoop();
+	spork ~ launchControlIacLoop();
 
-while(samp => now);
+}
 
+fun void probeAudioUnits() {
+	AudioUnit.list() @=> string aus[];
+	for(int i; i < aus.cap(); i++) {
+	    chout <= aus[i] <= IO.newline();
+	}
+}
 
-// * Init Functions * 
+fun void initClock() {
+	internalClockGui.init();
+	internalClockGui.bpmSlider.value(135);
+	internalClockGui.clock.start();
+	internalClockGui.onButton.state(1);
+}
 
 fun void initMidi() {
 	nanoMidiOut.open( "drumKONTROL1 CTRL" );
@@ -70,21 +86,10 @@ fun void initMidi() {
 	iacMidiOut.open( "IAC Driver IAC Bus 1" );
 	iacMidiOut2.open( "IAC Driver IAC Bus 2" );
 
-	launchControl.clearAllLeds( launchControlMidiOut );
 	Utility.midiOut( 0x90, launchControl.buttons[0], 1, launchControlMidiOut );
 }
 
-fun void initAudioUnits() {
-
-	// probe audio units
-	AudioUnit.list() @=> string aus[];
-	for(int i; i < aus.cap(); i++) {
-	    chout <= aus[i] <= IO.newline();
-	}
-
-	drumazon.open( "Drumazon" );
-	drumazon.display();
-
+fun void initLividPitch() {
 	phoscyon.open( "Phoscyon" );
 	phoscyon.display();
 
@@ -100,41 +105,49 @@ fun void initAudioUnits() {
 	lividPitch.sequencers[2].___init( internalClockGui.clock, lush );
 
 	lividPitch.sequencers[1].octave( 5 );
+
+	launchControl.clearAllLeds( launchControlMidiOut );
 }
+
 
 fun void initNanoDrum() {
 	drumSequencer.init( internalClockGui.clock, drumazon );
 	nanoDrum.init( drumSequencer, nanoMidiInName, nanoMidiOut );
-}
 
-fun void initNanoDrumMultiplexer() {
+	drumazon.open( "Drumazon" );
+	drumazon.display();
+
 	int controlChanges[5];
 	for( 0 => int i; i < 5; i++ ) {
 		nanoKontrol2.knobs[i] => controlChanges[i];
 	}
 	0 => int multiplerChannelOut;
-	ccMultiplexer.init( controlChanges, nanoMidiInName, iacMidiOut, multiplerChannelOut );
+														// midi chan out
+	ccMultiplexer.init( controlChanges, nanoMidiInName, iacMidiOut, 0 );
 	ccAuRouter.init( drumazon, iacMidiInName );
+
+	spork ~ nanoKontrolLoop();
+}
+
+fun void initNanoDrumMultiplexer() {
 
 	int controlChanges2[launchControl.knobs.cap()];
 	for( int i; i < launchControl.knobs.cap(); i++ ) {
 		launchControl.knobs[i] => controlChanges2[i];
 	}
-	ccMultiplexer2.init( controlChanges2, launchControlMidiInName, iacMidiOut2, multiplerChannelOut );
+																   // midi chan out
+	ccMultiplexer2.init( controlChanges2, launchControlMidiInName, iacMidiOut2, 0 );
 	ccAuRouter2.init( phoscyon, iacMidiIn2Name );
 	ccAuRouter3.init( phoscyon2, iacMidiIn2Name );
 	ccAuRouter4.init( lush, iacMidiIn2Name );
 
-	spork ~ launchControlPageSelectLoop();
-	spork ~ launchControlIacLoop();
-	spork ~ nanoKontrolLoop();
 }
 
 fun void nanoKontrolLoop() {
 	MidiIn min;
 	MidiMsg msg;
 	min.open( nanoMidiInName );
-	
+
 	while( min => now ) {
 		while( min.recv(msg) ) {
 			if( nanoKontrol2.isFader(msg.data2) ) {
@@ -174,7 +187,7 @@ fun void launchControlIacLoop() {
 
 	while( min => now ) {
 		while( min.recv(msg) ) {
-			if( msg.data1 == 0xB0 ) {
+			if( launchControl.isKnob(msg) ) {
 				if( msg.data2 == 5 ) {
 					//phoscyonDelayBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
 					lividPitch.sequencers[0].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
