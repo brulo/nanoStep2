@@ -59,11 +59,9 @@ fun void main() {
 	initMidi();
 	initLividPitch();
 	initNanoDrum();
-	initNanoDrumMultiplexer();
 
 	spork ~ launchControlPageSelectLoop();
 	spork ~ launchControlIacLoop();
-
 }
 
 fun void probeAudioUnits() {
@@ -118,29 +116,24 @@ fun void initNanoDrum() {
 	drumazon.display();
 
 	int controlChanges[5];
-	for( 0 => int i; i < 5; i++ ) {
+	for( int i; i < 5; i++ ) {
 		nanoKontrol2.knobs[i] => controlChanges[i];
 	}
+
 	0 => int multiplerChannelOut;
-														// midi chan out
-	ccMultiplexer.init( controlChanges, nanoMidiInName, iacMidiOut, 0 );
+	ccMultiplexer.init( controlChanges, nanoMidiInName, iacMidiOut, multiplerChannelOut );
 	ccAuRouter.init( drumazon, iacMidiInName );
-
-	spork ~ nanoKontrolLoop();
-}
-
-fun void initNanoDrumMultiplexer() {
 
 	int controlChanges2[launchControl.knobs.cap()];
 	for( int i; i < launchControl.knobs.cap(); i++ ) {
 		launchControl.knobs[i] => controlChanges2[i];
 	}
-																   // midi chan out
-	ccMultiplexer2.init( controlChanges2, launchControlMidiInName, iacMidiOut2, 0 );
+	ccMultiplexer2.init( controlChanges2, launchControlMidiInName, iacMidiOut2, multiplerChannelOut );
 	ccAuRouter2.init( phoscyon, iacMidiIn2Name );
 	ccAuRouter3.init( phoscyon2, iacMidiIn2Name );
 	ccAuRouter4.init( lush, iacMidiIn2Name );
 
+	spork ~ nanoKontrolLoop();
 }
 
 fun void nanoKontrolLoop() {
@@ -169,6 +162,7 @@ fun void nanoKontrolLoop() {
 			}
 			else if( nanoKontrol2.isChannelButton(msg.data2) ) {
 				if( msg.data3 == 127 ) {
+					// nanoDrum cc mulitplexer page change
 					if( nanoKontrol2.channelButtonRow(msg.data2) == 0 ) {
 						nanoKontrol2.channelButtonColumn( msg.data2 ) => int column;
 						//<<<"changing drum multiplexer to drum num", column >>>;
