@@ -6,6 +6,8 @@ public class LividPitch {
 	"red" => string triggerLedColor;
 	"green" => string tieLedColor;
 	"blue" => string accentLedColor;
+	"yellow" => string octaveLedColor;
+
 	"red" => string pageSelectLedColor;
 	"magenta" => string sequencerSelectLedColor;
 	"blue" => string patternEditingLedColor;
@@ -14,6 +16,7 @@ public class LividPitch {
 	3 => int triggerLedRow;
 	2 => int tieLedRow;
 	1 => int accentLedRow;
+	0 => int octaveLedRow;
 	0 => int sequencerIndex;
 	0 => int pageIndex;
 	8 => int maxPages;
@@ -138,6 +141,17 @@ public class LividPitch {
 			else {
 				sequencers[sequencerIndex].accent(stepIndex, 1);
 				base.setPadLed(x, y, accentLedColor);
+			}
+		}
+		// octave
+		else if( y == octaveLedRow ) {
+			if( sequencers[sequencerIndex].octaveStep(stepIndex) ) {
+				sequencers[sequencerIndex].octaveStep(stepIndex, 0);
+				base.setPadLed( x, y, "off" );
+			}
+			else {
+				sequencers[sequencerIndex].octaveStep(stepIndex, 1);
+				base.setPadLed( x, y, octaveLedColor );
 			}
 		}
 	}

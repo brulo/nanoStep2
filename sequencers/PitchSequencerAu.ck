@@ -18,7 +18,7 @@ public class PitchSequencerAu extends PitchSequencer {
 
 		// get this step's pitch
 		(pitches[_patternPlaying][_currentStep] $ int) => int currentNote;
-		(currentNote + _transpose + (_octave * 12)) $ int => currentNote;
+		( currentNote + _transpose + _octave*12 + octaves[_patternEditing][_currentStep]*12 ) $ int => currentNote;
 
 		// step is triggered
 		if(_triggers[_patternPlaying][_currentStep] > 0) {

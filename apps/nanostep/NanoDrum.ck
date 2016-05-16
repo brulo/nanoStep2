@@ -12,7 +12,10 @@ public class NanoDrum {
 		theNanoKontrol2 @=> nanoKontrol2;
 
 		if( nanoMidiIn.open(midiInName) ) {
-			<<<"NanoDrum: opened midi in device", midiInName, "successfully">>>;
+			<<<"NanoDrum: opened MidiIn device", midiInName, "successfully">>>;
+		}
+		else {
+			<<<"NanoDrum: unable to opened MidiIn device", midiInName >>>;
 		}
 
 		drumSequencer.firstStep( 0 );
