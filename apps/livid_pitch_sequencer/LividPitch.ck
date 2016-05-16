@@ -204,6 +204,13 @@ public class LividPitch {
 				base.setPadLed(x, accentLedRow, accentLedColor);
 			else
 				base.setPadLed(x, accentLedRow, "off");
+
+			if( sequencers[sequencerIndex].octaveStep(stepIndex) ) {
+				base.setPadLed( x, octaveLedRow, octaveLedColor );
+			}
+			else {
+				base.setPadLed( x, octaveLedRow, "off" );
+			}
 		}
 	}
 
