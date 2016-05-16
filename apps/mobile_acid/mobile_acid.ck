@@ -110,7 +110,8 @@ fun void initLividPitch() {
 
 fun void initNanoDrum() {
 	drumSequencer.init( internalClockGui.clock, drumazon );
-	nanoDrum.init( drumSequencer, nanoMidiInName, nanoMidiOut );
+	nanoKontrol2.init( nanoMidiOut );
+	nanoDrum.init( drumSequencer, nanoMidiInName, nanoKontrol2 );
 
 	drumazon.open( "Drumazon" );
 	drumazon.display();
@@ -143,28 +144,28 @@ fun void nanoKontrolLoop() {
 
 	while( min => now ) {
 		while( min.recv(msg) ) {
-			if( nanoKontrol2.isFader(msg.data2) ) {
+			if( nanoKontrol2.isFader(msg) ) {
 				64 +=> msg.data2;
 				iacMidiOut.send( msg );
 			}
-			else if( nanoKontrol2.isKnob(msg.data2) ) {
+			else if( nanoKontrol2.isKnob(msg) ) {
 				/*	
 				if( nanoKontrol2.knobIndex(msg.data2) == 5 ) {
 					drumazonDelayBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
 				}
 				*/
-				if( nanoKontrol2.knobIndex(msg.data2) == 6) {
+				if( nanoKontrol2.knobIndex(msg) == 6) {
 					drumazonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
 				}
-				else if( nanoKontrol2.knobIndex(msg.data2) == 7) {
+				else if( nanoKontrol2.knobIndex(msg) == 7) {
 					drumazonBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
 				}
 			}
-			else if( nanoKontrol2.isChannelButton(msg.data2) ) {
+			else if( nanoKontrol2.isChannelButton(msg) ) {
 				if( msg.data3 == 127 ) {
 					// nanoDrum cc mulitplexer page change
-					if( nanoKontrol2.channelButtonRow(msg.data2) == 0 ) {
-						nanoKontrol2.channelButtonColumn( msg.data2 ) => int column;
+					if( nanoKontrol2.channelButtonRow(msg) == 0 ) {
+						nanoKontrol2.channelButtonColumn( msg ) => int column;
 						//<<<"changing drum multiplexer to drum num", column >>>;
 						ccMultiplexer.changePage( column );
 					}

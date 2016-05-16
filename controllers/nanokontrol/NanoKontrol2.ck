@@ -1,4 +1,5 @@
 public class NanoKontrol2 {
+    MidiOut midiOut;
     int faders[8];
     int knobs[8];
     int channelButtons[8][3];
@@ -27,62 +28,68 @@ public class NanoKontrol2 {
     transportButtons[9] => int trackLeftButton;
     transportButtons[10] => int trackRightButton;
 
-    fun int isFader( int cc ) {
+    
+    fun void init( MidiOut theMidiOut ) {
+        theMidiOut @=> midiOut;
+        turnAllLedsOff();
+    }
+
+    fun int isFader( MidiMsg msg ) {
         for( int i; i < faders.size(); i++ ) {
-            if( cc == faders[i] ) {
+            if( msg.data2 == faders[i] ) {
                 return 1;
             }
         }
         return 0;
     }
 
-    fun int faderIndex( int cc ) {
-        if( isFader(cc) ) {
-            return cc;
+    fun int faderIndex( MidiMsg msg ) {
+        if( isFader(msg) ) {
+            return msg.data2;
         }
         return -1;
     }
 
-    fun int isKnob( int cc ) {
+    fun int isKnob( MidiMsg msg ) {
         for( int i; i < knobs.size(); i++ ) {
-            if( cc == knobs[i] ) {
+            if( msg.data2 == knobs[i] ) {
                 return 1;
             }
         }
         return 0;
     }
 
-    fun int knobIndex( int cc ) {
-        if( isKnob(cc) ){
-            return cc - knobs[0];
+    fun int knobIndex( MidiMsg msg ) {
+        if( isKnob(msg) ){
+            return msg.data2 - knobs[0];
         } 
         return -1;
     }
 
-    fun int isChannelButton( int cc ) {
+    fun int isChannelButton( MidiMsg msg ) {
         for( int i; i < channelButtons.size(); i++ ) {
             for( int j; j < channelButtons[0].size(); j++ ) {
-                if( cc == channelButtons[i][j]) {
-                    return cc;
+                if( msg.data2 == channelButtons[i][j]) {
+                    return msg.data2;
                 }
             }
         }
         return 0;
     }
 
-    fun int[] buttonPos( int cc ) {
+    fun int[] buttonPos( MidiMsg msg ) {
         int result[2];
-        channelButtonColumn( cc ) => result[0];
-        channelButtonRow( cc ) => result[1];
+        channelButtonColumn( msg ) => result[0];
+        channelButtonRow( msg ) => result[1];
 
         return result;
     }
     
-    fun int channelButtonColumn( int cc ) {
-        if( isChannelButton(cc) ) {
+    fun int channelButtonColumn( MidiMsg msg ) {
+        if( isChannelButton(msg) ) {
             for( int i; i < channelButtons.size(); i++ ) {
                 for( int j; j < channelButtons[0].size(); j++ ) {
-                    if( cc == channelButtons[i][j] ) {
+                    if( msg.data2 == channelButtons[i][j] ) {
                         return i;
                     }
                 }
@@ -91,11 +98,11 @@ public class NanoKontrol2 {
         return -1;
     }
 
-    fun int channelButtonRow( int cc ) {
-        if( isChannelButton(cc) ) {
+    fun int channelButtonRow( MidiMsg msg ) {
+        if( isChannelButton(msg) ) {
             for( int i; i < channelButtons.size(); i++ ) {
                 for( int j; j < channelButtons[0].size(); j++ ) {
-                    if( cc == channelButtons[i][j] ) {
+                    if( msg.data2 == channelButtons[i][j] ) {
                         return j;
                     }
                 }
@@ -104,33 +111,127 @@ public class NanoKontrol2 {
         return -1;
     }
 
-    fun int isTransportButton( int cc ) {
+    fun int isTransportButton( MidiMsg msg ) {
         for( int i; i < transportButtons.size(); i++ ) {
-            if( cc == transportButtons[i] ) {
+            if( msg.data2 == transportButtons[i] ) {
                 return 1;
             }
         }
         return 0;
     }   
 
-    fun int isControl( int cc ) {
-        if( isFader(cc) | isKnob(cc) | isChannelButton(cc) | isFader(cc) ) {
+    fun int isControl( MidiMsg msg ) {
+        msg.data2 => int cc;
+        if( isFader(msg) || isKnob(msg) || isChannelButton(msg) || isFader(msg) ) {
             return 1;
         }
         return 0;
     }
 
-    fun void turnAllLedsOff( MidiOut midiOut ) {
-        for( 0 => int x; x < 8; x++ ) {
-            for( 0 => int y; y < 3; y++ ) {
-                channelButtons[x][y] => int cc;
-                Utility.midiOut( 0xB0, cc, 0, midiOut );
+    fun void setChannelLed( int row, int col, int isOn ) {
+        if( isOn != 0 ) {
+            1 => isOn;
+        }
+        channelButtons[col][row] => int cc;
+        Utility.midiOut( 0xB0, cc, isOn * 127, midiOut );
+    }
+
+    fun void setRewindLed( int isOn ) {
+        if( isOn != 0 ) {
+            1 => isOn;
+        }
+        Utility.midiOut( 0xB0, rewindButton, isOn * 127, midiOut );
+    }
+
+    fun void setFastForwardLed( int isOn ) {
+        if( isOn != 0 ) {
+            1 => isOn;
+        }
+        Utility.midiOut( 0xB0, fastForwardButton, isOn * 127, midiOut );
+    }
+
+    fun void setStopLed( int isOn ) {
+        if( isOn != 0 ) {
+            1 => isOn;
+        }
+        Utility.midiOut( 0xB0, stopButton, isOn * 127, midiOut );
+    }
+
+    fun void setPlayLed( int isOn ) {
+        if( isOn != 0 ) {
+            1 => isOn;
+        }
+        Utility.midiOut( 0xB0, playButton, isOn * 127, midiOut );
+    }
+
+    fun void setRecordLed( int isOn ) {
+        if( isOn != 0 ) {
+            1 => isOn;
+        }
+        Utility.midiOut( 0xB0, recordButton, isOn * 127, midiOut );
+    }
+
+    fun void setCycleLed( int isOn ) {
+        if( isOn != 0 ) {
+            1 => isOn;
+        }
+        Utility.midiOut( 0xB0, cycleButton, isOn * 127, midiOut );
+    }
+
+    fun void turnAllLedsOff() {
+        for( int row; row < 3; row++ ) {
+            for( int col; col < 8; col++ ) {
+                setChannelLed( row, col, 0 );
             }
         }
 
         for( 0 => int i; i < transportButtons.cap(); i++ ) {
             Utility.midiOut( 0xB0, transportButtons[i], 0, midiOut );
         }
+    }
+
+    fun int isTrackRightButton( MidiMsg msg ) {
+        return msg.data2 == trackRightButton;
+    }
+
+    fun int isTrackLeftButton( MidiMsg msg ) {
+        return msg.data2 == trackLeftButton;
+    }
+
+    fun int isMarkerRightButton( MidiMsg msg ) {
+        return msg.data2 == markerRightButton;
+    }
+
+    fun int isMarkerLeftButton( MidiMsg msg ) {
+        return msg.data2 == markerLeftButton;
+    }
+
+    fun int isSetButton( MidiMsg msg ) {
+        return msg.data2 == setButton;
+    }
+
+    fun int isCycleButton( MidiMsg msg ) {
+        return msg.data2 == cycleButton;
+    }
+
+    fun int isRecordButton( MidiMsg msg ) {
+        return msg.data2 == recordButton;
+    }
+
+    fun int isPlayButton( MidiMsg msg ) {
+        return msg.data2 == playButton;
+    }
+
+    fun int isStopButton( MidiMsg msg ) {
+        return msg.data2 == stopButton;
+    }
+
+    fun int isFastForwardButton( MidiMsg msg ) {
+        return msg.data2 == fastForwardButton;
+    }
+
+    fun int isRewindButton( MidiMsg msg ) {
+        return msg.data2 == rewindButton;
     }
 
 }      
