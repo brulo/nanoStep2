@@ -92,7 +92,7 @@ public class PitchSequencer extends Sequencer {
 	// * Utility Shreds *
 
 	fun void stepLengthLoop() {
-		while(samp => now) {
+		while( 10:ms => now ) {
 			_stepLength * (clock.lastStepDur - 20::ms) + 20::ms => _stepDur;
 		}
 	}

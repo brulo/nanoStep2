@@ -61,7 +61,7 @@ public class InternalClockGui {
 	}
 
 	fun void _sliderLoop() {
-		while(samp => now) {
+		while( 10::ms => now ) {
 			clock.bpm(bpmSlider.value());
 			clock.swingAmount(swingSlider.value());
 		}
