@@ -23,7 +23,7 @@ public class LividPitch {
 
 	fun void init() {
 		<<< "Initializing LividPitch...", "" >>>;
-		
+
 		initBase();		
 
 		spork ~ chaseLedLoop();
@@ -32,8 +32,8 @@ public class LividPitch {
 
 	fun void chaseLedLoop() {
 		while( sequencers[0].clock.step => now ) {
-			base.setTouchButtonLed( sequencers[0]._previousStep % 8, "center", "off" );
-			base.setTouchButtonLed( sequencers[0]._currentStep % 8, "center", "red" );
+			base.setTouchButtonLed( sequencers[sequencerIndex]._previousStep % 8, "center", "off" );
+			base.setTouchButtonLed( sequencers[sequencerIndex]._currentStep % 8, "center", "red" );
 		}
 	}
 
@@ -44,6 +44,7 @@ public class LividPitch {
 		base.setButtonLed(4, "left", "magenta");
 		base.setButtonLed(4, "right", "magenta");
 		base.setTouchButtonLed(pageIndex, "center", pageSelectLedColor);
+		base.setFaderLed( 8, 7 );
 	}
 
 	fun void main() {
@@ -165,6 +166,8 @@ public class LividPitch {
 			base.setButtonLed(sequencers[sequencerIndex].patternPlaying(), "right", patternPlayingLedColor);
 
 			updateStepLeds();
+
+			base.setFaderLed( 8, sequencers[sequencerIndex].lastStep() );
 		}
 	}
 
