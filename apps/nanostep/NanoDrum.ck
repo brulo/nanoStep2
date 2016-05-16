@@ -7,7 +7,7 @@ public class NanoDrum {
 	
 	fun void init( DrumSequencer theDrumSequencer, string midiInName, NanoKontrol2 theNanoKontrol2 ) {
 		<<<"initializing nanodrum", "">>>;
-		
+
 		theDrumSequencer @=> drumSequencer;
 		theNanoKontrol2 @=> nanoKontrol2;
 
@@ -58,9 +58,13 @@ public class NanoDrum {
 						else if( nanoKontrol2.isFastForwardButton(msg) ) {
 							patternSelectorButtonAction( 1 );
 						} // make pattern editing the pattern playing
-						else if( msg.data2 == nanoKontrol2.cycleButton ) {
+						else if( nanoKontrol2.isCycleButton(msg) ) {
 							drumSequencer.patternPlaying( drumSequencer.patternEditing() );
 							nanoKontrol2.setCycleLed( 1 );
+						}
+						else if( nanoKontrol2.isStopButton(msg) ) {
+							drumSequencer.deletePattern();
+							updateTriggerButtonLeds();
 						}
 					}
 				}

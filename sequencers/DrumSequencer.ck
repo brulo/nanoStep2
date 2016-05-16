@@ -42,6 +42,12 @@ public class DrumSequencer extends Sequencer {
 		return _patternEditing;
 	}
 
+	fun void deletePattern() {
+		for( int i; i < _numberOfSteps; i++ ) {
+			trigger( i, 0 );
+		}
+	}
+
 	// * Get Only Properties *
 
 	fun int numberOfPatterns() { return _numberOfPatterns; }
