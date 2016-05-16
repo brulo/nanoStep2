@@ -11,6 +11,9 @@ public class DrumSequencer extends Sequencer {
 
 	// * Set and Get Properties * 
 
+	fun int trigger() {
+		return triggers[_selectedDrum][_patternEditing][_currentStep];
+	}
 	fun int trigger( int step ) {
 		return triggers[_selectedDrum][_patternEditing][step];
 	}

@@ -21,6 +21,7 @@ public class NanoDrum {
 		Utility.midiOut( 0xB0, nanoKontrol2.rewindButton, 127, nanoMidiOut );
 		Utility.midiOut( 0xB0, nanoKontrol2.cycleButton, 127, nanoMidiOut );
 
+		spork ~ triggerOnChaseLed();
 		spork ~ main();
 		<<<"nanodrum initialized", "">>>;
 	}
@@ -101,6 +102,17 @@ public class NanoDrum {
 				nanoKontrol2.channelButtons[x][y+1] => int cc;
 				drumSequencer.trigger( x + 8*y ) * 127 => int offOrOn;
 				Utility.midiOut( 0xB0, cc, offOrOn, nanoMidiOut );
+			}
+		}
+	}
+
+	fun void triggerOnChaseLed() {
+		while( drumSequencer.clock.step => now ) {
+			if( drumSequencer.trigger() ) {
+				Utility.midiOut( 0xB0, nanoKontrol2.recordButton, 127, nanoMidiOut );
+			}
+			else {
+				Utility.midiOut( 0xB0, nanoKontrol2.recordButton, 0, nanoMidiOut );
 			}
 		}
 	}
