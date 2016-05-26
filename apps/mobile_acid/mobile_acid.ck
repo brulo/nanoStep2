@@ -10,6 +10,7 @@ DrumSequencerAu drumSequencer;
 LaunchControl launchControl;
 ControlChangeToAuRouter ccAuRouter, ccAuRouter2, ccAuRouter3, ccAuRouter4;
 ControlChangeMultiplexer ccMultiplexer, ccMultiplexer2;
+AudioUnitDisplayer audioUnitDisplayer;
 
 // midi 
 "drumKONTROL1 SLIDER/KNOB" => string nanoMidiInName;
@@ -64,9 +65,26 @@ fun void main() {
 	initMidi();
 	initLividPitch();
 	initNanoDrum();
+	initAudioUnitDisplay();
 
 	spork ~ launchControlPageSelectLoop();
 	spork ~ launchControlIacLoop();
+}
+
+fun void initAudioUnitDisplay() {
+	AudioUnit audioUnits[4];
+	phoscyon  @=> audioUnits[0];
+	phoscyon2 @=> audioUnits[1];
+	lush      @=> audioUnits[2];
+	drumazon  @=> audioUnits[3];
+	
+	string audioUnitNames[4];
+	"phoscyon"  => audioUnitNames[0];
+	"phoscyon2" => audioUnitNames[1];
+	"lush"      => audioUnitNames[2];
+	"drumazon"  => audioUnitNames[3];
+
+	audioUnitDisplayer.init( audioUnits, audioUnitNames );
 }
 
 fun void probeAudioUnits() {
@@ -93,13 +111,10 @@ fun void initMidi() {
 
 fun void initLividPitch() {
 	phoscyon.open( "Phoscyon" );
-	phoscyon.display();
 
 	phoscyon2.open( "Phoscyon" );
-	phoscyon2.display();
 	
 	lush.open( "LuSH-101" );
-	lush.display();
 
 	lividPitch.init();
 	lividPitch.sequencers[0].___init( clock, phoscyon );
@@ -118,7 +133,6 @@ fun void initNanoDrum() {
 	nanoDrum.init( drumSequencer, nanoMidiInName, nanoKontrol2 );
 
 	drumazon.open( "Drumazon" );
-	drumazon.display();
 
 	int controlChanges[5];
 	for( int i; i < 5; i++ ) {

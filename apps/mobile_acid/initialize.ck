@@ -4,6 +4,7 @@ Machine.add(me.dir(-2) + "/utilities/ModeQuantizer.ck");
 Machine.add(me.dir(-2) + "/utilities/ControlChangeToAuRouter.ck");
 Machine.add(me.dir(-2) + "/utilities/ControlChangeMultiplexer.ck");
 Machine.add(me.dir(-2) + "/controllers/launchcontrol/LaunchControl.ck");
+Machine.add(me.dir(0) +  "AudioUnitDisplayer.ck");
 // clock
 Machine.add(me.dir(-2) + "/clock/Clock.ck");
 Machine.add(me.dir(-2) + "/clock/MidiClock.ck");
