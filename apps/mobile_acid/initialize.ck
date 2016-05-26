@@ -6,8 +6,9 @@ Machine.add(me.dir(-2) + "/utilities/ControlChangeMultiplexer.ck");
 Machine.add(me.dir(-2) + "/controllers/launchcontrol/LaunchControl.ck");
 // clock
 Machine.add(me.dir(-2) + "/clock/Clock.ck");
+Machine.add(me.dir(-2) + "/clock/MidiClock.ck");
 Machine.add(me.dir(-2) + "/clock/InternalClock.ck");
-Machine.add(me.dir(-2) + "/clock/InternalClockGui.ck");
+//Machine.add(me.dir(-2) + "/clock/InternalClockGui.ck");
 //sequencer
 Machine.add(me.dir(-2) + "/sequencers/Sequencer.ck");
 Machine.add(me.dir(-2) + "/sequencers/PitchSequencer.ck");

@@ -2,6 +2,7 @@
 // March 2016
 
 InternalClock clock;
+//MidiClock clock;
 LividPitch lividPitch;
 NanoKontrol2 nanoKontrol2;
 NanoDrum nanoDrum;
@@ -76,7 +77,8 @@ fun void probeAudioUnits() {
 }
 
 fun void initClock() {
-	clock.init();
+	clock.init();                   // internal clock
+	//clock.init( iacMidiInName );  // midi clock 
 	clock.start();
 }
 
