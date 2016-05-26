@@ -1,7 +1,7 @@
 // mobile acid techno jambox software
 // March 2016
 
-InternalClockGui internalClockGui;
+InternalClock clock;
 LividPitch lividPitch;
 NanoKontrol2 nanoKontrol2;
 NanoDrum nanoDrum;
@@ -21,26 +21,30 @@ MidiOut nanoMidiOut, iacMidiOut, iacMidiOut2, launchControlMidiOut;
 Dyno limiter => dac;
 limiter.limit();
 
+
 NRev reverb => limiter;
 reverb.mix( 1 );
 
 //FeedbackDelay delay => limiter;
 
 AudioUnit phoscyon => limiter;
-phoscyon => Gain phoscyonReverbBus => reverb;
+phoscyon => HPF phoscyonHpf => Gain phoscyonReverbBus => reverb;
 phoscyonReverbBus.gain( 0 );
+phoscyonHpf.freq( 400 );
 //phoscyon => Gain phoscyonDelayBus => delay;
 //phoscyonDelayBus.gain( 0 );
 
 AudioUnit phoscyon2 => limiter;
-phoscyon2 => Gain phoscyon2ReverbBus => reverb;
+phoscyon2 => HPF phoscyon2Hpf => Gain phoscyon2ReverbBus => reverb;
 phoscyon2ReverbBus.gain( 0 );
+phoscyon2Hpf.freq( 400 );
 //phoscyon2 => Gain phoscyon2DelayBus => delay;
 //phoscyon2DelayBus.gain( 0 );
 
 AudioUnit drumazon => Gain drumazonBus => limiter;
-drumazonBus => Gain drumazonReverbBus => reverb;
+drumazonBus => HPF drumazonHpf => Gain drumazonReverbBus => reverb;
 drumazonReverbBus.gain( 0 );
+drumazonHpf.freq( 700 );
 //drumazon => Gain drumazonDelayBus => delay;
 //drumazonDelayBus.gain( 0 );
 
@@ -72,10 +76,8 @@ fun void probeAudioUnits() {
 }
 
 fun void initClock() {
-	internalClockGui.init();
-	internalClockGui.bpmSlider.value(135);
-	internalClockGui.clock.start();
-	internalClockGui.onButton.state(1);
+	clock.init();
+	clock.start();
 }
 
 fun void initMidi() {
@@ -98,9 +100,9 @@ fun void initLividPitch() {
 	lush.display();
 
 	lividPitch.init();
-	lividPitch.sequencers[0].___init( internalClockGui.clock, phoscyon );
-	lividPitch.sequencers[1].___init( internalClockGui.clock, phoscyon2 );
-	lividPitch.sequencers[2].___init( internalClockGui.clock, lush );
+	lividPitch.sequencers[0].___init( clock, phoscyon );
+	lividPitch.sequencers[1].___init( clock, phoscyon2 );
+	lividPitch.sequencers[2].___init( clock, lush );
 
 	lividPitch.sequencers[1].octave( 5 );
 
@@ -109,7 +111,7 @@ fun void initLividPitch() {
 
 
 fun void initNanoDrum() {
-	drumSequencer.init( internalClockGui.clock, drumazon );
+	drumSequencer.init( clock, drumazon );
 	nanoKontrol2.init( nanoMidiOut );
 	nanoDrum.init( drumSequencer, nanoMidiInName, nanoKontrol2 );
 
@@ -155,7 +157,7 @@ fun void nanoKontrolLoop() {
 				}
 				*/
 				if( nanoKontrol2.knobIndex(msg) == 6) {
-					drumazonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
+					drumazonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.4) );
 				}
 				else if( nanoKontrol2.knobIndex(msg) == 7) {
 					drumazonBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
@@ -182,26 +184,24 @@ fun void launchControlIacLoop() {
 
 	while( min => now ) {
 		while( min.recv(msg) ) {
-			if( launchControl.isKnob(msg) ) {
-				if( msg.data2 == 5 ) {
-					//phoscyonDelayBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
-					lividPitch.sequencers[0].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
-				}
-				else if( msg.data2 == 6 ) {
-					phoscyonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
-				}
-				else if( msg.data2 == 13 ) {
-					lividPitch.sequencers[1].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
-				}
-				else if( msg.data2 == 14 ) {
-					phoscyon2ReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
-				}
-				else if( msg.data2 == 21 ) {
-					lividPitch.sequencers[2].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
-				}
-				else if( msg.data2 == 22 ) {
-					lushReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
-				}
+			if( msg.data2 == 5 ) {
+				//phoscyonDelayBus.gain( Utility.remap(msg.data3, 0, 127, 0, 1) );
+				lividPitch.sequencers[0].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
+			}
+			else if( msg.data2 == 6 ) {
+				phoscyonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
+			}
+			else if( msg.data2 == 13 ) {
+				lividPitch.sequencers[1].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
+			}
+			else if( msg.data2 == 14 ) {
+				phoscyon2ReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
+			}
+			else if( msg.data2 == 21 ) {
+				lividPitch.sequencers[2].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
+			}
+			else if( msg.data2 == 22 ) {
+				lushReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
 			}
 		}
 	}
