@@ -18,39 +18,34 @@ AudioUnitDisplayer audioUnitDisplayer;
 "IAC Driver IAC Bus 2" => string iacMidiIn2Name;
 "Launch Control" => string launchControlMidiInName;
 MidiOut nanoMidiOut, iacMidiOut, iacMidiOut2, launchControlMidiOut;
+0.75 => float MAX_REVERB_GAIN;
 
 // ugens
-Dyno limiter => dac;
-limiter.limit();
 
+HPF reverb => dac.chan( 1 );
+reverb.freq( 400 );
 
-NRev reverb => limiter;
-reverb.mix( 1 );
+//FeedbackDelay delay => dac.chan( 0 );
 
-//FeedbackDelay delay => limiter;
-
-AudioUnit phoscyon => limiter;
-phoscyon => HPF phoscyonHpf => Gain phoscyonReverbBus => reverb;
-phoscyonReverbBus.gain( 0 );
-phoscyonHpf.freq( 400 );
+AudioUnit phoscyon => dac.chan( 0 );
+phoscyon => Gain phoscyonReverbBus => reverb; 
+phoscyonReverbBus.gain( 0.5 );
 //phoscyon => Gain phoscyonDelayBus => delay;
 //phoscyonDelayBus.gain( 0 );
 
-AudioUnit phoscyon2 => limiter;
-phoscyon2 => HPF phoscyon2Hpf => Gain phoscyon2ReverbBus => reverb;
+AudioUnit phoscyon2 => dac.chan( 0 );
+phoscyon => Gain phoscyon2ReverbBus => reverb; 
 phoscyon2ReverbBus.gain( 0 );
-phoscyon2Hpf.freq( 400 );
 //phoscyon2 => Gain phoscyon2DelayBus => delay;
 //phoscyon2DelayBus.gain( 0 );
 
-AudioUnit drumazon => Gain drumazonBus => limiter;
-drumazonBus => HPF drumazonHpf => Gain drumazonReverbBus => reverb;
+AudioUnit drumazon => Gain drumazonBus => dac.chan( 0 );
+drumazon => Gain drumazonReverbBus => reverb; 
 drumazonReverbBus.gain( 0 );
-drumazonHpf.freq( 700 );
 //drumazon => Gain drumazonDelayBus => delay;
 //drumazonDelayBus.gain( 0 );
 
-AudioUnit lush => limiter;
+AudioUnit lush => dac.chan( 0 );
 lush => Gain lushReverbBus => reverb;
 lushReverbBus.gain( 0 );
 //lush => Gain lushDelayBus => delay;
@@ -77,7 +72,7 @@ fun void initAudioUnitDisplay() {
 	phoscyon2 @=> audioUnits[1];
 	lush      @=> audioUnits[2];
 	drumazon  @=> audioUnits[3];
-	
+
 	string audioUnitNames[4];
 	"phoscyon"  => audioUnitNames[0];
 	"phoscyon2" => audioUnitNames[1];
@@ -205,19 +200,19 @@ fun void launchControlIacLoop() {
 				lividPitch.sequencers[0].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
 			}
 			else if( msg.data2 == 6 ) {
-				phoscyonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
+				phoscyonReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, MAX_REVERB_GAIN) );
 			}
 			else if( msg.data2 == 13 ) {
 				lividPitch.sequencers[1].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
 			}
 			else if( msg.data2 == 14 ) {
-				phoscyon2ReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
+				phoscyon2ReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, MAX_REVERB_GAIN) );
 			}
 			else if( msg.data2 == 21 ) {
 				lividPitch.sequencers[2].stepLength( Utility.remap(msg.data3, 0, 127, 0.1, 1) );
 			}
 			else if( msg.data2 == 22 ) {
-				lushReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, 0.5) );
+				lushReverbBus.gain( Utility.remap(msg.data3, 0, 127, 0, MAX_REVERB_GAIN) );
 			}
 		}
 	}
