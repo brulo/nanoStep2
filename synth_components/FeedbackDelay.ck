@@ -1,8 +1,9 @@
 public class FeedbackDelay extends Chubgraph {
+	500 => float MAX_DELAY_TIME;
 	inlet => Delay _delay => outlet;
 	_delay => Gain feedbackBus => _delay;
 	feedbackBus.gain(0.85);
-	_delay.max( 1::second );
+	_delay.max( MAX_DELAY_TIME::ms );
 	_delay.delay(100::ms);
 
 	fun void feedback( float val ) {
@@ -15,7 +16,7 @@ public class FeedbackDelay extends Chubgraph {
 	fun void delayTime( float val ) {
 		Std.clampf( val, 0.0, 1.0 ) => val;
 		val *=> val;
-		Std.scalef( val, 0.0, 1.0, 10.0, 500.0)::ms => _delay.delay;
+		Std.scalef( val, 0.0, 1.0, 10.0, MAX_DELAY_TIME )::ms => _delay.delay;
 	}
 
 }
