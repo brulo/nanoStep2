@@ -18,13 +18,18 @@ AudioUnitDisplayer audioUnitDisplayer;
 "IAC Driver IAC Bus 2" => string iacMidiIn2Name;
 "Launch Control" => string launchControlMidiInName;
 MidiOut nanoMidiOut, iacMidiOut, iacMidiOut2, launchControlMidiOut;
-0.75 => float MAX_REVERB_GAIN;
+1.5 => float MAX_REVERB_GAIN;
 0.5 => float MAX_DELAY_GAIN;
 
 // ugens
 
-HPF reverb => dac.chan( 1 );
+HPF reverb => GVerb gverb => dac.chan( 0 );
 reverb.freq( 400 );
+70 => gverb.roomsize;
+4::second => gverb.revtime;
+0 => gverb.dry;
+0.2 => gverb.early;
+0.5 => gverb.tail;
 
 HPF delayHpf => FeedbackDelay delay => dac.chan( 0 );
 delayHpf.freq( 300 );
@@ -111,7 +116,6 @@ fun void initMidi() {
 
 fun void initLividPitch() {
 	phoscyon.open( "Phoscyon" );
-
 	phoscyon2.open( "Phoscyon" );
 	
 	lush.open( "LuSH-101" );
@@ -121,6 +125,7 @@ fun void initLividPitch() {
 	lividPitch.sequencers[1].___init( clock, phoscyon2 );
 	lividPitch.sequencers[2].___init( clock, lush );
 
+	lividPitch.sequencers[1].octave( 3 );
 	lividPitch.sequencers[1].octave( 5 );
 
 	launchControl.clearAllLeds( launchControlMidiOut );
