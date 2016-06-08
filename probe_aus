@@ -1,0 +1,5 @@
+
+AudioUnit.list() @=> string aus[];
+for(int i; i < aus.cap(); i++) {
+    chout <= aus[i] <= IO.newline();
+}
